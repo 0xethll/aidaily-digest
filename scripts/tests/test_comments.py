@@ -8,6 +8,9 @@ import sys
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import logging
+from typing import Any, Optional
+
 
 # Add the current directory to Python path
 sys.path.append(str(Path(__file__).parent))
@@ -23,7 +26,7 @@ logger = setup_logging(
 ).getChild(__name__)
 
 
-def test_comment_fetching(submission_url: str = None):
+def test_comment_fetching(submission_url: Optional[str] = None):
     """Test comment fetching on a specific submission"""
     try:
         # Load environment variables
@@ -135,7 +138,7 @@ def test_comment_filtering():
     ]
     
     for comment, expected, description in test_cases:
-        result = fetcher._should_include_comment(comment)
+        result = fetcher._should_include_comment(comment)  # type: ignore
         status = "✓" if result == expected else "✗"
         logger.info(f"{status} {description}: Expected {expected}, Got {result}")
     

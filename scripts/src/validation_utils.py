@@ -4,10 +4,10 @@ Input validation and sanitization utilities for Reddit data
 
 import re
 import html
-from typing import Any
+from typing import Any, Optional
 
 
-def sanitize_text(text: str, max_length: int = None) -> str:
+def sanitize_text(text: str, max_length: Optional[int] = None) -> str:
     """
     Sanitize and validate text input
     

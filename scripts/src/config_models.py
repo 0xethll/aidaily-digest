@@ -36,7 +36,7 @@ class FetchConfig:
     max_comments_per_post: int = 10
     max_comment_depth: int = 2
     min_comment_score: int = 2
-    target_subreddits: List[str] = None
+    target_subreddits: List[str] = []
     min_submission_score: int = 5
     max_title_length: int = 300
     max_content_length: int = 40000
@@ -55,16 +55,16 @@ def load_config_from_env() -> tuple[RedditConfig, SupabaseConfig, FetchConfig]:
         ConnectionError: If database connectivity validation fails
     """
     reddit_config = RedditConfig(
-        client_id=os.getenv('REDDIT_CLIENT_ID'),
-        client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-        username=os.getenv('REDDIT_USERNAME'),
-        password=os.getenv('REDDIT_PASSWORD'),
+        client_id=os.getenv('REDDIT_CLIENT_ID') or '',
+        client_secret=os.getenv('REDDIT_CLIENT_SECRET') or '',
+        username=os.getenv('REDDIT_USERNAME') or '',
+        password=os.getenv('REDDIT_PASSWORD') or '',
         user_agent=os.getenv('REDDIT_USER_AGENT', 'AI Daily Digest Fetcher 1.0')
     )
     
     supabase_config = SupabaseConfig(
-        url=os.getenv('SUPABASE_URL'),
-        key=os.getenv('SUPABASE_ANON_KEY')
+        url=os.getenv('SUPABASE_URL') or '',
+        key=os.getenv('SUPABASE_ANON_KEY') or ''
     )
     
     # Validate required environment variables

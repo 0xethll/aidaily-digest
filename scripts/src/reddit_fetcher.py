@@ -4,12 +4,13 @@ Updated to use reddit_id as primary keys for better performance
 """
 
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 from typing import List, Dict, Optional, Any
 
 import praw
+import praw.models
 from supabase import create_client, Client
-from prawcore.exceptions import TooManyRequests, ServerError, ResponseException
+from prawcore.exceptions import TooManyRequests, ServerError
 from postgrest.exceptions import APIError as SupabaseAPIError
 import praw.exceptions
 
@@ -31,7 +32,7 @@ logger = get_script_logger(__name__)
 class RedditFetcher:
     """Fetches Reddit submissions and stores them in Supabase"""
     
-    def __init__(self, reddit_config: RedditConfig, supabase_config: SupabaseConfig, fetch_config: FetchConfig = None):
+    def __init__(self, reddit_config: RedditConfig, supabase_config: SupabaseConfig, fetch_config: Optional[FetchConfig] = None):
         self.reddit_config = reddit_config
         self.supabase_config = supabase_config
         self.fetch_config = fetch_config or FetchConfig()
@@ -420,7 +421,7 @@ class RedditFetcher:
         
         return results
     
-    def get_daily_stats(self, date: datetime = None) -> Dict[str, Any]:
+    def get_daily_stats(self, date: Optional[date] = None) -> Dict[str, Any]:
         """
         Get statistics for posts fetched on a specific date
         

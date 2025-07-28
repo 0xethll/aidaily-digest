@@ -6,6 +6,7 @@ Run this script daily to fetch the latest AI-related posts from Reddit
 
 import sys
 import os
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
