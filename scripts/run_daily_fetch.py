@@ -39,12 +39,15 @@ def main():
         
         # Load configuration
         logger.info("Loading configuration...")
-        reddit_config, supabase_config = load_config_from_env()
+        reddit_config, supabase_config, fetch_config = load_config_from_env()
         logger.info("Configuration loaded successfully")
+        logger.info(f"Comment fetching: {'enabled' if fetch_config.fetch_comments else 'disabled'}")
+        if fetch_config.fetch_comments:
+            logger.info(f"Comment settings: max {fetch_config.max_comments_per_post} per post, depth {fetch_config.max_comment_depth}, min score {fetch_config.min_comment_score}")
         
         # Initialize fetcher
         logger.info("Initializing Reddit fetcher...")
-        fetcher = RedditFetcher(reddit_config, supabase_config)
+        fetcher = RedditFetcher(reddit_config, supabase_config, fetch_config)
         logger.info("Reddit fetcher initialized successfully")
         
         # Fetch from all subreddits

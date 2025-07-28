@@ -1,12 +1,9 @@
--- Supabase Database Schema for Reddit AI Daily Digest
-
--- Enable UUID extension for unique IDs
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Supabase Database Schema for Reddit AI Daily Digest (v2)
+-- Updated to use reddit_id as primary keys for better performance and simplicity
 
 -- Table for storing subreddit information
 CREATE TABLE subreddits (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(100) PRIMARY KEY,
     display_name VARCHAR(100) NOT NULL,
     description TEXT,
     subscribers INTEGER,
@@ -17,9 +14,8 @@ CREATE TABLE subreddits (
 
 -- Table for storing Reddit submissions/posts
 CREATE TABLE reddit_posts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    reddit_id VARCHAR(20) UNIQUE NOT NULL,
-    subreddit_id UUID REFERENCES subreddits(id) ON DELETE CASCADE,
+    reddit_id VARCHAR(20) PRIMARY KEY,
+    subreddit_name VARCHAR(100) REFERENCES subreddits(name) ON DELETE CASCADE,
     title TEXT NOT NULL,
     content TEXT,
     url TEXT,
@@ -44,12 +40,11 @@ CREATE TABLE reddit_posts (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table for storing Reddit comments (optional)
+-- Table for storing Reddit comments
 CREATE TABLE reddit_comments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    reddit_id VARCHAR(20) UNIQUE NOT NULL,
-    post_id UUID REFERENCES reddit_posts(id) ON DELETE CASCADE,
-    parent_comment_id UUID REFERENCES reddit_comments(id) ON DELETE CASCADE,
+    reddit_id VARCHAR(20) PRIMARY KEY,
+    post_reddit_id VARCHAR(20) REFERENCES reddit_posts(reddit_id) ON DELETE CASCADE,
+    parent_comment_reddit_id VARCHAR(20) REFERENCES reddit_comments(reddit_id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     score INTEGER DEFAULT 0,
     author VARCHAR(100),
@@ -62,9 +57,9 @@ CREATE TABLE reddit_comments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table for daily digest generation
+-- Table for daily digest generation (keep UUID for internal use)
 CREATE TABLE daily_digests (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     date DATE UNIQUE NOT NULL,
     post_count INTEGER DEFAULT 0,
     summary TEXT,
@@ -78,17 +73,19 @@ CREATE TABLE daily_digests (
 -- Junction table for posts included in each digest
 CREATE TABLE digest_posts (
     digest_id UUID REFERENCES daily_digests(id) ON DELETE CASCADE,
-    post_id UUID REFERENCES reddit_posts(id) ON DELETE CASCADE,
-    PRIMARY KEY (digest_id, post_id)
+    post_reddit_id VARCHAR(20) REFERENCES reddit_posts(reddit_id) ON DELETE CASCADE,
+    PRIMARY KEY (digest_id, post_reddit_id)
 );
 
 -- Create indexes for performance
-CREATE INDEX idx_reddit_posts_subreddit_id ON reddit_posts(subreddit_id);
+CREATE INDEX idx_reddit_posts_subreddit_name ON reddit_posts(subreddit_name);
 CREATE INDEX idx_reddit_posts_created_utc ON reddit_posts(created_utc);
 CREATE INDEX idx_reddit_posts_score ON reddit_posts(score);
-CREATE INDEX idx_reddit_posts_reddit_id ON reddit_posts(reddit_id);
-CREATE INDEX idx_reddit_comments_post_id ON reddit_comments(post_id);
+CREATE INDEX idx_reddit_posts_fetched_at ON reddit_posts(fetched_at);
+CREATE INDEX idx_reddit_comments_post_reddit_id ON reddit_comments(post_reddit_id);
+CREATE INDEX idx_reddit_comments_parent_comment_reddit_id ON reddit_comments(parent_comment_reddit_id);
 CREATE INDEX idx_reddit_comments_created_utc ON reddit_comments(created_utc);
+CREATE INDEX idx_reddit_comments_fetched_at ON reddit_comments(fetched_at);
 CREATE INDEX idx_daily_digests_date ON daily_digests(date);
 
 -- Insert the target subreddits
@@ -102,11 +99,6 @@ INSERT INTO subreddits (name, display_name) VALUES
     ('OpenAI', 'OpenAI'),
     ('PromptEngineering', 'PromptEngineering'),
     ('singularity', 'singularity');
-
--- Row Level Security (RLS) policies if needed
--- ALTER TABLE reddit_posts ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE reddit_comments ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE daily_digests ENABLE ROW LEVEL SECURITY;
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
