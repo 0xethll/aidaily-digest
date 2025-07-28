@@ -12,19 +12,16 @@ from dotenv import load_dotenv
 # Add the current directory to Python path
 sys.path.append(str(Path(__file__).parent))
 
-from reddit_fetcher import RedditFetcher, load_config_from_env
-import logging
+from src.reddit_fetcher import RedditFetcher
+from src.config_models import load_config_from_env
+from src.logging_config import setup_logging
 
 # Configure logging
-logging.basicConfig(
+logger = setup_logging(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('reddit_fetch.log'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger(__name__)
+    log_file='reddit_fetch.log',
+    include_console=True
+).getChild(__name__)
 
 
 def main():

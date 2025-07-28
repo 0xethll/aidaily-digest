@@ -3,66 +3,33 @@ Reddit Fetcher for AI Daily Digest (v2)
 Updated to use reddit_id as primary keys for better performance
 """
 
-import os
 import time
-import logging
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Optional, Any
-from dataclasses import dataclass
 
 import praw
 from supabase import create_client, Client
-from prawcore.exceptions import TooManyRequests, ServerError
+from prawcore.exceptions import TooManyRequests, ServerError, ResponseException
+from postgrest.exceptions import APIError as SupabaseAPIError
+import praw.exceptions
 
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# Import utility modules
+from .logging_config import get_script_logger
+from .validation_utils import sanitize_text, validate_reddit_id, validate_url, validate_score
+from .config_models import RedditConfig, SupabaseConfig, FetchConfig, load_config_from_env
+from .database_utils import (
+    batch_check_submissions_exist,
+    batch_check_comments_exist,
+    check_subreddit_exists,
+    check_submission_exists,
+    check_comment_exists
 )
-logger = logging.getLogger(__name__)
 
-
-@dataclass
-class RedditConfig:
-    """Configuration for Reddit API access"""
-    client_id: str
-    client_secret: str
-    username: str
-    password: str
-    user_agent: str
-
-
-@dataclass
-class SupabaseConfig:
-    """Configuration for Supabase database"""
-    url: str
-    key: str
-
-
-@dataclass
-class FetchConfig:
-    """Configuration for fetch behavior"""
-    fetch_comments: bool = True
-    max_comments_per_post: int = 10
-    max_comment_depth: int = 2
-    min_comment_score: int = 2
+logger = get_script_logger(__name__)
 
 
 class RedditFetcher:
     """Fetches Reddit submissions and stores them in Supabase"""
-    
-    TARGET_SUBREDDITS = [
-        'AI_Agents',
-        'artificial', 
-        'ClaudeAI',
-        'huggingface',
-        'LangChain',
-        'LocalLLaMA',
-        'OpenAI',
-        'PromptEngineering',
-        'singularity'
-    ]
     
     def __init__(self, reddit_config: RedditConfig, supabase_config: SupabaseConfig, fetch_config: FetchConfig = None):
         self.reddit_config = reddit_config
@@ -94,52 +61,63 @@ class RedditFetcher:
     
     def subreddit_exists(self, subreddit_name: str) -> bool:
         """Check if subreddit exists in database"""
-        try:
-            result = self.supabase.table('subreddits').select('name').eq('name', subreddit_name).execute()
-            return len(result.data) > 0
-        except Exception as e:
-            logger.error(f"Error checking if subreddit exists: {e}")
-            return False
+        return check_subreddit_exists(self.supabase, subreddit_name)
     
     def submission_exists(self, reddit_id: str) -> bool:
         """Check if submission already exists in database"""
-        try:
-            result = self.supabase.table('reddit_posts').select('reddit_id').eq('reddit_id', reddit_id).execute()
-            return len(result.data) > 0
-        except Exception as e:
-            logger.error(f"Error checking if submission exists: {e}")
-            return False
+        return check_submission_exists(self.supabase, reddit_id)
     
     def comment_exists(self, reddit_id: str) -> bool:
         """Check if comment already exists in database"""
-        try:
-            result = self.supabase.table('reddit_comments').select('reddit_id').eq('reddit_id', reddit_id).execute()
-            return len(result.data) > 0
-        except Exception as e:
-            logger.error(f"Error checking if comment exists: {e}")
-            return False
+        return check_comment_exists(self.supabase, reddit_id)
     
+    def batch_check_submissions_exist(self, reddit_ids: List[str]) -> Dict[str, bool]:
+        """Check multiple submissions existence in a single query"""
+        return batch_check_submissions_exist(self.supabase, reddit_ids)
+    
+    def batch_check_comments_exist(self, reddit_ids: List[str]) -> Dict[str, bool]:
+        """Check multiple comments existence in a single query"""
+        return batch_check_comments_exist(self.supabase, reddit_ids)
+
     def store_submission(self, submission: praw.models.Submission, subreddit_name: str) -> bool:
         """Store or update a Reddit submission in Supabase"""
         try:
+            # Validate Reddit ID
+            if not validate_reddit_id(submission.id):
+                logger.error(f"Invalid Reddit ID format: {submission.id}")
+                return False
             
-            # Prepare submission data
+            # Sanitize and validate input data
+            title = sanitize_text(submission.title, max_length=self.fetch_config.max_title_length)
+            if not title:
+                logger.error(f"Invalid or empty title for submission {submission.id}")
+                return False
+                
+            content = sanitize_text(submission.selftext, max_length=self.fetch_config.max_content_length) if submission.is_self else None
+            url = submission.url if not submission.is_self else None
+            
+            # Validate URL if present
+            if url and not validate_url(url):
+                logger.warning(f"Invalid URL for submission {submission.id}: {url}")
+                url = None
+            
+            # Prepare submission data with validation
             submission_data = {
                 'reddit_id': submission.id,
-                'subreddit_name': subreddit_name,
-                'title': submission.title,
-                'content': submission.selftext if submission.is_self else None,
-                'url': submission.url if not submission.is_self else None,
-                'score': submission.score,
-                'num_comments': submission.num_comments,
-                'upvote_ratio': submission.upvote_ratio,
-                'author': str(submission.author) if submission.author else None,
+                'subreddit_name': sanitize_text(subreddit_name, max_length=100),
+                'title': title,
+                'content': content,
+                'url': url,
+                'score': validate_score(submission.score),
+                'num_comments': max(0, int(submission.num_comments) if submission.num_comments else 0),
+                'upvote_ratio': max(0.0, min(1.0, float(submission.upvote_ratio) if submission.upvote_ratio else 0.0)),
+                'author': sanitize_text(str(submission.author), max_length=100) if submission.author else None,
                 'created_utc': datetime.fromtimestamp(submission.created_utc, tz=timezone.utc).isoformat(),
-                'is_stickied': submission.stickied,
-                'is_nsfw': submission.over_18,
-                'is_self': submission.is_self,
-                'permalink': f"https://reddit.com{submission.permalink}",
-                'thumbnail': submission.thumbnail if hasattr(submission, 'thumbnail') else None
+                'is_stickied': bool(submission.stickied),
+                'is_nsfw': bool(submission.over_18),
+                'is_self': bool(submission.is_self),
+                'permalink': f"https://reddit.com{sanitize_text(submission.permalink, max_length=500)}",
+                'thumbnail': sanitize_text(submission.thumbnail, max_length=500) if hasattr(submission, 'thumbnail') and submission.thumbnail else None
             }
             
             # Upsert into database (insert or update if exists)
@@ -152,29 +130,53 @@ class RedditFetcher:
                 logger.error(f"Failed to store/update submission: {submission.id}")
                 return False
                 
+        except SupabaseAPIError as e:
+            logger.error(f"Database error storing submission {submission.id}: {e}")
+            return False
+        except AttributeError as e:
+            logger.error(f"Reddit data access error for submission {submission.id}: {e}")
+            return False
         except Exception as e:
-            logger.error(f"Error storing submission {submission.id}: {e}")
+            logger.error(f"Unexpected error storing submission {submission.id}: {e}")
             return False
     
     def store_comment(self, comment: praw.models.Comment, post_reddit_id: str, parent_comment_reddit_id: Optional[str] = None, depth: int = 0) -> bool:
         """Store or update a Reddit comment in Supabase"""
         try:
+            # Validate Reddit IDs
+            if not validate_reddit_id(comment.id):
+                logger.error(f"Invalid comment Reddit ID format: {comment.id}")
+                return False
+                
+            if not validate_reddit_id(post_reddit_id):
+                logger.error(f"Invalid post Reddit ID format: {post_reddit_id}")
+                return False
+                
+            if parent_comment_reddit_id and not validate_reddit_id(parent_comment_reddit_id):
+                logger.error(f"Invalid parent comment Reddit ID format: {parent_comment_reddit_id}")
+                return False
             
             # Skip deleted/removed comments
             if comment.body in ['[deleted]', '[removed]', None]:
                 return False
             
-            # Prepare comment data
+            # Sanitize and validate comment content
+            content = sanitize_text(comment.body, max_length=self.fetch_config.max_comment_length)
+            if not content:
+                logger.debug(f"Empty content after sanitization for comment {comment.id}")
+                return False
+            
+            # Prepare comment data with validation
             comment_data = {
                 'reddit_id': comment.id,
                 'post_reddit_id': post_reddit_id,
                 'parent_comment_reddit_id': parent_comment_reddit_id,
-                'content': comment.body,
-                'score': comment.score,
-                'author': str(comment.author) if comment.author else None,
+                'content': content,
+                'score': validate_score(comment.score),
+                'author': sanitize_text(str(comment.author), max_length=100) if comment.author else None,
                 'created_utc': datetime.fromtimestamp(comment.created_utc, tz=timezone.utc).isoformat(),
-                'is_submitter': comment.is_submitter,
-                'depth': depth
+                'is_submitter': bool(comment.is_submitter),
+                'depth': max(0, min(10, int(depth)))  # Limit depth to reasonable range
             }
             
             # Upsert into database (insert or update if exists)
@@ -187,8 +189,14 @@ class RedditFetcher:
                 logger.error(f"Failed to store/update comment: {comment.id}")
                 return False
                 
+        except SupabaseAPIError as e:
+            logger.error(f"Database error storing comment {comment.id}: {e}")
+            return False
+        except AttributeError as e:
+            logger.error(f"Reddit data access error for comment {comment.id}: {e}")
+            return False
         except Exception as e:
-            logger.error(f"Error storing comment {comment.id}: {e}")
+            logger.error(f"Unexpected error storing comment {comment.id}: {e}")
             return False
     
     def fetch_submission_comments(self, submission: praw.models.Submission, post_reddit_id: str) -> int:
@@ -227,8 +235,14 @@ class RedditFetcher:
             
             return stored_count
             
+        except praw.exceptions.PRAWException as e:
+            logger.error(f"Reddit API error fetching comments for submission {submission.id}: {e}")
+            return 0
+        except AttributeError as e:
+            logger.error(f"Reddit data access error for submission {submission.id}: {e}")
+            return 0
         except Exception as e:
-            logger.error(f"Error fetching comments for submission {submission.id}: {e}")
+            logger.error(f"Unexpected error fetching comments for submission {submission.id}: {e}")
             return 0
     
     def _fetch_comment_replies(self, parent_comment: praw.models.Comment, post_reddit_id: str, parent_comment_reddit_id: str, depth: int) -> int:
@@ -254,8 +268,12 @@ class RedditFetcher:
                 
                 time.sleep(0.05)
             
+        except praw.exceptions.PRAWException as e:
+            logger.error(f"Reddit API error fetching replies for comment {parent_comment.id}: {e}")
+        except AttributeError as e:  
+            logger.error(f"Reddit data access error for comment {parent_comment.id}: {e}")
         except Exception as e:
-            logger.error(f"Error fetching replies for comment {parent_comment.id}: {e}")
+            logger.error(f"Unexpected error fetching replies for comment {parent_comment.id}: {e}")
         
         return stored_count
     
@@ -284,7 +302,20 @@ class RedditFetcher:
         subreddit_name: str, 
         limit: int = 25,
     ) -> int:
-        """Fetch submissions from a specific subreddit"""
+        """
+        Fetch submissions from a specific subreddit
+        
+        Args:
+            subreddit_name: Name of the subreddit to fetch from
+            limit: Maximum number of submissions to fetch (default: 25)
+            
+        Returns:
+            int: Number of new submissions successfully stored
+            
+        Raises:
+            TooManyRequests: When Reddit API rate limit is exceeded
+            ServerError: When Reddit API server error occurs
+        """
         logger.info(f"Fetching submissions from r/{subreddit_name}")
         
         # Check if subreddit exists in database
@@ -329,7 +360,7 @@ class RedditFetcher:
             return False
         
         # Skip low-score posts (configurable threshold)
-        if submission.score < 5:
+        if submission.score < self.fetch_config.min_submission_score:
             return False
         
         # Skip deleted/removed posts
@@ -343,14 +374,23 @@ class RedditFetcher:
         return True
     
     def fetch_all_subreddits(self, limit_per_subreddit: int = 25) -> Dict[str, int]:
-        """Fetch submissions from all target subreddits"""
+        """
+        Fetch submissions from all configured target subreddits
+        
+        Args:
+            limit_per_subreddit: Maximum submissions to fetch per subreddit (default: 25)
+            
+        Returns:
+            Dict[str, int]: Mapping of subreddit names to number of new posts stored
+        """
         logger.info("Starting daily Reddit fetch")
         if self.fetch_config.fetch_comments:
             logger.info(f"Comment fetching enabled: max {self.fetch_config.max_comments_per_post} comments per post, depth {self.fetch_config.max_comment_depth}")
         results = {}
         total_stored = 0
         
-        for subreddit_name in self.TARGET_SUBREDDITS:
+        target_subreddits = self.fetch_config.target_subreddits or []
+        for subreddit_name in target_subreddits:
             try:
                 count = self.fetch_subreddit_submissions(subreddit_name, limit_per_subreddit)
                 results[subreddit_name] = count
@@ -381,7 +421,16 @@ class RedditFetcher:
         return results
     
     def get_daily_stats(self, date: datetime = None) -> Dict[str, Any]:
-        """Get statistics for posts fetched on a specific date"""
+        """
+        Get statistics for posts fetched on a specific date
+        
+        Args:
+            date: Date to get stats for (default: today)
+            
+        Returns:
+            Dict[str, Any]: Statistics including total posts, posts by subreddit,
+                          average score, and comment statistics
+        """
         if date is None:
             date = datetime.now(timezone.utc).date()
         
@@ -436,50 +485,6 @@ class RedditFetcher:
             return {}
 
 
-def load_config_from_env() -> tuple[RedditConfig, SupabaseConfig, FetchConfig]:
-    """Load configuration from environment variables"""
-    reddit_config = RedditConfig(
-        client_id=os.getenv('REDDIT_CLIENT_ID'),
-        client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-        username=os.getenv('REDDIT_USERNAME'),
-        password=os.getenv('REDDIT_PASSWORD'),
-        user_agent=os.getenv('REDDIT_USER_AGENT', 'AI Daily Digest Fetcher 1.0')
-    )
-    
-    supabase_config = SupabaseConfig(
-        url=os.getenv('SUPABASE_URL'),
-        key=os.getenv('SUPABASE_ANON_KEY')
-    )
-    
-    # Validate required environment variables
-    required_vars = [
-        reddit_config.client_id,
-        reddit_config.client_secret, 
-        reddit_config.username,
-        reddit_config.password,
-        supabase_config.url,
-        supabase_config.key
-    ]
-    
-    if not all(required_vars):
-        missing = []
-        if not reddit_config.client_id: missing.append('REDDIT_CLIENT_ID')
-        if not reddit_config.client_secret: missing.append('REDDIT_CLIENT_SECRET')
-        if not reddit_config.username: missing.append('REDDIT_USERNAME')
-        if not reddit_config.password: missing.append('REDDIT_PASSWORD')
-        if not supabase_config.url: missing.append('SUPABASE_URL')
-        if not supabase_config.key: missing.append('SUPABASE_ANON_KEY')
-        
-        raise ValueError(f"Missing required environment variables: {missing}")
-    
-    fetch_config = FetchConfig(
-        fetch_comments=os.getenv('FETCH_COMMENTS', 'true').lower() == 'true',
-        max_comments_per_post=int(os.getenv('MAX_COMMENTS_PER_POST', '10')),
-        max_comment_depth=int(os.getenv('MAX_COMMENT_DEPTH', '2')),
-        min_comment_score=int(os.getenv('MIN_COMMENT_SCORE', '2'))
-    )
-    
-    return reddit_config, supabase_config, fetch_config
 
 
 def main():

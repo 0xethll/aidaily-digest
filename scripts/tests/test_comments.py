@@ -12,15 +12,15 @@ from dotenv import load_dotenv
 # Add the current directory to Python path
 sys.path.append(str(Path(__file__).parent))
 
-from reddit_fetcher import RedditFetcher, load_config_from_env, FetchConfig
-import logging
+from src.reddit_fetcher import RedditFetcher
+from src.config_models import load_config_from_env, FetchConfig
+from src.logging_config import setup_logging
 
 # Configure logging
-logging.basicConfig(
+logger = setup_logging(
     level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+    include_console=True
+).getChild(__name__)
 
 
 def test_comment_fetching(submission_url: str = None):
@@ -63,27 +63,24 @@ def test_comment_fetching(submission_url: str = None):
         logger.info(f"Submission has {submission.num_comments} total comments")
         
         # Check if post exists in database, if not store it first
-        post_id = fetcher.get_post_id_by_reddit_id(submission.id)
-        if not post_id:
+        if not fetcher.submission_exists(submission.id):
             logger.info("Submission not in database, storing it first...")
             
-            # Get subreddit ID
-            subreddit_id = fetcher.get_subreddit_id(submission.subreddit.display_name)
-            if not subreddit_id:
-                logger.error(f"Subreddit {submission.subreddit.display_name} not in database")
+            # Store the submission using subreddit name
+            subreddit_name = submission.subreddit.display_name
+            if not fetcher.subreddit_exists(subreddit_name):
+                logger.error(f"Subreddit {subreddit_name} not in database")
                 return
             
             # Store the submission
-            if fetcher.store_submission(submission, subreddit_id):
-                post_id = fetcher.get_post_id_by_reddit_id(submission.id)
-                logger.info(f"Stored submission with post_id: {post_id}")
-            else:
+            if not fetcher.store_submission(submission, subreddit_name):
                 logger.error("Failed to store submission")
                 return
+            logger.info(f"Stored submission with reddit_id: {submission.id}")
         
         # Fetch comments
         logger.info("Starting comment fetching...")
-        comment_count = fetcher.fetch_submission_comments(submission, post_id)
+        comment_count = fetcher.fetch_submission_comments(submission, submission.id)
         
         logger.info(f"Successfully stored {comment_count} comments")
         
@@ -91,7 +88,7 @@ def test_comment_fetching(submission_url: str = None):
         try:
             result = fetcher.supabase.table('reddit_comments')\
                 .select('*')\
-                .eq('post_id', post_id)\
+                .eq('post_reddit_id', submission.id)\
                 .execute()
             
             comments = result.data
