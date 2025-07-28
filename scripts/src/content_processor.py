@@ -1,0 +1,403 @@
+"""
+Content Processing Module for AI Daily Digest
+Handles LLM-based summarization, categorization, and keyword extraction
+"""
+
+import json
+import os
+import re
+from datetime import datetime, timezone
+from typing import List, Dict, Optional, Any
+from dataclasses import dataclass
+
+import openai
+from supabase import Client
+from postgrest import CountMethod
+from postgrest.exceptions import APIError as SupabaseAPIError
+
+from .logging_config import get_script_logger
+from .validation_utils import sanitize_text
+from .config_models import SupabaseConfig, load_config_from_env
+
+logger = get_script_logger(__name__)
+
+
+@dataclass
+class ProcessingConfig:
+    """Configuration for content processing"""
+    fireworks_api_key: str
+    model_name: str = "accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new"
+    max_retries: int = 3
+    temperature: float = 0.1
+    max_tokens: int = 1000
+    batch_size: int = 10
+
+
+class ContentProcessor:
+    """Processes Reddit content using LLM for summarization, categorization, and keyword extraction"""
+    
+    def __init__(self, supabase_config: SupabaseConfig, processing_config: ProcessingConfig):
+        self.supabase_config = supabase_config
+        self.processing_config = processing_config
+        
+        # Initialize OpenAI client with Fireworks endpoint
+        self.client = openai.OpenAI(
+            base_url="https://api.fireworks.ai/inference/v1",
+            api_key=processing_config.fireworks_api_key
+        )
+        
+        # Initialize Supabase client
+        from supabase import create_client
+        self.supabase: Client = create_client(
+            supabase_config.url,
+            supabase_config.key
+        )
+    
+    def get_unprocessed_posts(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get posts that haven't been processed yet"""
+        try:
+            result = self.supabase.table('reddit_posts')\
+                .select('*')\
+                .is_('content_processed_at', 'null')\
+                .order('created_utc', desc=True)\
+                .limit(limit)\
+                .execute()
+            
+            return result.data or []
+        except SupabaseAPIError as e:
+            logger.error(f"Database error fetching unprocessed posts: {e}")
+            return []
+    
+    def create_processing_prompt(self, title: str, content: Optional[str] = None, url: Optional[str] = None) -> str:
+        """Create a structured prompt for content processing"""
+        prompt = f"""You are an AI content analyst specializing in AI and technology content. Analyze the following Reddit post and provide:
+
+1. SUMMARY: A concise 2-3 sentence summary focusing on key insights and main points
+2. CATEGORY: Choose ONE category that best fits:
+   - news: Breaking news, announcements, industry updates
+   - discussion: Community discussions, debates, opinions
+   - tutorial: How-to guides, educational content, explanations
+   - question: Questions seeking help or information
+   - tool: Software tools, applications, libraries
+   - research: Academic papers, studies, technical research
+   - showcase: Projects, demos, personal work
+   - other: Content that doesn't fit other categories
+
+3. KEYWORDS: Extract 3-7 relevant keywords/phrases (comma-separated)
+
+POST DATA:
+Title: {title}"""
+
+        if content and content.strip():
+            prompt += f"\nContent: {content[:2000]}..."  # Limit content length
+        
+        if url:
+            prompt += f"\nURL: {url}"
+        
+        prompt += """
+
+Respond in this exact JSON format:
+{
+  "summary": "Your summary here",
+  "category": "category_name",
+  "keywords": ["keyword1", "keyword2", "keyword3"]
+}"""
+        
+        return prompt
+    
+    def process_single_post(self, post: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Process a single post using the LLM"""
+        try:
+            prompt = self.create_processing_prompt(
+                title=post['title'],
+                content=post.get('content'),
+                url=post.get('url')
+            )
+            
+            # Make API call to Fireworks
+            response = self.client.chat.completions.create(
+                model=self.processing_config.model_name,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful AI assistant that analyzes content and responds only in valid JSON format."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=self.processing_config.temperature,
+                max_tokens=self.processing_config.max_tokens
+            )
+            
+            # Parse the response
+            response_text = response.choices[0].message.content
+            if response_text is None:
+                raise ValueError("OpenAI API returned None content")
+            response_text = response_text.strip()
+            
+            # Clean up response (remove code blocks if present)
+            if response_text.startswith('```json'):
+                response_text = response_text[7:]
+            if response_text.endswith('```'):
+                response_text = response_text[:-3]
+            
+            # Parse JSON
+            try:
+                result = json.loads(response_text)
+                
+                # Validate required fields
+                if not all(key in result for key in ['summary', 'category', 'keywords']):
+                    logger.error(f"Invalid response format for post {post['reddit_id']}: missing required fields")
+                    return None
+                
+                # Sanitize and validate data
+                processed_data = {
+                    'summary': sanitize_text(result['summary'], max_length=1000),
+                    'category': self._validate_category(result['category']),
+                    'keywords': self._process_keywords(result['keywords'])
+                }
+                
+                logger.info(f"Successfully processed post: {post['title'][:50]}...")
+                return processed_data
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON decode error for post {post['reddit_id']}: {e}")
+                logger.debug(f"Raw response: {response_text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error processing post {post['reddit_id']}: {e}")
+            return None
+    
+    def _validate_category(self, category: str) -> str:
+        """Validate and normalize category"""
+        valid_categories = {
+            'news', 'discussion', 'tutorial', 'question', 
+            'tool', 'research', 'showcase', 'other'
+        }
+        
+        category = category.lower().strip()
+        if category in valid_categories:
+            return category
+        
+        # Try to map common variations
+        category_mapping = {
+            'announcement': 'news',
+            'update': 'news',
+            'guide': 'tutorial',
+            'howto': 'tutorial',
+            'help': 'question',
+            'demo': 'showcase',
+            'project': 'showcase',
+            'paper': 'research',
+            'study': 'research'
+        }
+        
+        return category_mapping.get(category, 'other')
+    
+    def _process_keywords(self, keywords: List[str]) -> List[str]:
+        """Process and clean keywords"""
+        if not isinstance(keywords, list):
+            logger.warning(f"Keywords not a list: {keywords}")
+            return []
+        
+        processed = []
+        for keyword in keywords:
+            if isinstance(keyword, str):
+                # Clean and normalize keyword
+                clean_keyword = re.sub(r'[^\w\s-]', '', keyword.strip().lower())
+                if clean_keyword and len(clean_keyword) > 1:
+                    processed.append(clean_keyword)
+        
+        # Limit to max 10 keywords
+        return processed[:10]
+    
+    def update_post_with_processing(self, reddit_id: str, processed_data: Dict[str, Any]) -> bool:
+        """Update a post with processed data"""
+        try:
+            update_data = {
+                'summary': processed_data['summary'],
+                'content_type': processed_data['category'],
+                'keywords': processed_data['keywords'],
+                'content_processed_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            result = self.supabase.table('reddit_posts')\
+                .update(update_data)\
+                .eq('reddit_id', reddit_id)\
+                .execute()
+            
+            if result.data:
+                logger.debug(f"Updated post {reddit_id} with processed data")
+                return True
+            else:
+                logger.error(f"Failed to update post {reddit_id}")
+                return False
+                
+        except SupabaseAPIError as e:
+            logger.error(f"Database error updating post {reddit_id}: {e}")
+            return False
+    
+    def process_batch(self, posts: List[Dict[str, Any]]) -> Dict[str, int]:
+        """Process a batch of posts"""
+        stats = {
+            'processed': 0,
+            'failed': 0,
+            'skipped': 0
+        }
+        
+        for post in posts:
+            try:
+                # Skip if already processed
+                if post.get('content_processed_at'):
+                    stats['skipped'] += 1
+                    continue
+                
+                # Process the post
+                processed_data = self.process_single_post(post)
+                
+                if processed_data:
+                    # Update database
+                    if self.update_post_with_processing(post['reddit_id'], processed_data):
+                        stats['processed'] += 1
+                    else:
+                        stats['failed'] += 1
+                else:
+                    stats['failed'] += 1
+                    
+            except Exception as e:
+                logger.error(f"Error in batch processing for post {post['reddit_id']}: {e}")
+                stats['failed'] += 1
+        
+        return stats
+    
+    def process_all_unprocessed(self, limit: int = 100) -> Dict[str, int]:
+        """Process all unprocessed posts in batches"""
+        logger.info("Starting content processing for unprocessed posts")
+        
+        total_stats = {
+            'processed': 0,
+            'failed': 0,
+            'skipped': 0
+        }
+        
+        batch_size = self.processing_config.batch_size
+        offset = 0
+        
+        while offset < limit:
+            # Get batch of unprocessed posts
+            posts = self.get_unprocessed_posts(limit=min(batch_size, limit - offset))
+            
+            if not posts:
+                logger.info("No more unprocessed posts found")
+                break
+            
+            logger.info(f"Processing batch of {len(posts)} posts (offset: {offset})")
+            
+            # Process batch
+            batch_stats = self.process_batch(posts)
+            
+            # Update totals
+            for key in total_stats:
+                total_stats[key] += batch_stats[key]
+            
+            logger.info(f"Batch completed: {batch_stats}")
+            
+            offset += len(posts)
+            
+            # If we got fewer posts than batch size, we're done
+            if len(posts) < batch_size:
+                break
+        
+        logger.info(f"Content processing completed. Final stats: {total_stats}")
+        return total_stats
+    
+    def get_processing_stats(self) -> Dict[str, Any]:
+        """Get statistics about processed content"""
+        try:
+            # Total posts
+            total_result = self.supabase.table('reddit_posts')\
+                .select('reddit_id', count=CountMethod.exact)\
+                .execute()
+            total_posts = total_result.count or 0
+            
+            # Processed posts
+            processed_result = self.supabase.table('reddit_posts')\
+                .select('reddit_id', count=CountMethod.exact)\
+                .not_.is_('content_processed_at', 'null')\
+                .execute()
+            processed_posts = processed_result.count or 0
+            
+            # Category breakdown
+            category_result = self.supabase.table('reddit_posts')\
+                .select('content_type')\
+                .not_.is_('content_type', 'null')\
+                .execute()
+            
+            category_counts = {}
+            for post in category_result.data or []:
+                category = post['content_type']
+                category_counts[category] = category_counts.get(category, 0) + 1
+            
+            return {
+                'total_posts': total_posts,
+                'processed_posts': processed_posts,
+                'unprocessed_posts': total_posts - processed_posts,
+                'processing_rate': round((processed_posts / total_posts * 100), 2) if total_posts > 0 else 0,
+                'category_breakdown': category_counts
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting processing stats: {e}")
+            return {}
+
+
+def load_processing_config() -> ProcessingConfig:
+    """Load processing configuration from environment"""
+    fireworks_api_key = os.getenv('FIREWORKS_API_KEY')
+    if not fireworks_api_key:
+        raise ValueError("FIREWORKS_API_KEY environment variable is required")
+    
+    return ProcessingConfig(
+        fireworks_api_key=fireworks_api_key,
+        model_name=os.getenv('FIREWORKS_MODEL', 'accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new'),
+        temperature=float(os.getenv('PROCESSING_TEMPERATURE', '0.1')),
+        max_tokens=int(os.getenv('PROCESSING_MAX_TOKENS', '1000')),
+        batch_size=int(os.getenv('PROCESSING_BATCH_SIZE', '10'))
+    )
+
+
+def main():
+    """Main function for testing the content processor"""
+    try:
+        # Load configurations
+        _, supabase_config, _ = load_config_from_env()
+        processing_config = load_processing_config()
+        
+        # Initialize processor
+        processor = ContentProcessor(supabase_config, processing_config)
+        
+        # Get current stats
+        stats = processor.get_processing_stats()
+        print(f"Current processing stats: {json.dumps(stats, indent=2)}")
+        
+        # Process unprocessed posts
+        if stats.get('unprocessed_posts', 0) > 0:
+            result_stats = processor.process_all_unprocessed(limit=50)
+            print(f"Processing results: {json.dumps(result_stats, indent=2)}")
+            
+            # Get updated stats
+            updated_stats = processor.get_processing_stats()
+            print(f"Updated stats: {json.dumps(updated_stats, indent=2)}")
+        else:
+            print("No unprocessed posts found")
+        
+    except Exception as e:
+        logger.error(f"Failed to run content processor: {e}")
+        raise
+
+
+if __name__ == "__main__":
+    main()

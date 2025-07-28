@@ -33,6 +33,9 @@ CREATE TABLE reddit_posts (
     -- AI processing fields
     summary TEXT,
     summary_generated_at TIMESTAMP WITH TIME ZONE,
+    content_type VARCHAR(50), -- news, discussion, tutorial, question, tool, research, etc.
+    keywords TEXT[], -- array of extracted keywords
+    content_processed_at TIMESTAMP WITH TIME ZONE,
     
     -- Metadata
     fetched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

@@ -56,7 +56,7 @@ cp .env.example .env
 ### 5. Test the Setup
 
 ```bash
-python reddit_fetcher.py
+uv run reddit_fetcher.py
 ```
 
 ## Usage
@@ -66,7 +66,7 @@ python reddit_fetcher.py
 Run a one-time fetch of all subreddits:
 
 ```bash
-python reddit_fetcher.py
+uv run reddit_fetcher.py
 ```
 
 ### Daily Automated Fetch
@@ -74,7 +74,7 @@ python reddit_fetcher.py
 Run the daily fetch script:
 
 ```bash
-python run_daily_fetch.py
+uv run run_daily_fetch.py
 ```
 
 ### Scheduling with Cron
