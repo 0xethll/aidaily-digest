@@ -1,0 +1,14 @@
+2025-07-28 21:56:36,616 - __main__ - INFO - ==================================================
+2025-07-28 21:56:36,616 - __main__ - INFO - Starting content processing
+2025-07-28 21:56:36,616 - __main__ - INFO - ==================================================
+2025-07-28 21:56:36,617 - __main__ - INFO - Loading configuration...
+2025-07-28 21:56:44,204 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/subreddits?select=name&limit=1 "HTTP/2 200 OK"
+2025-07-28 21:56:44,210 - src.config.config_models - INFO - Database connectivity validated successfully
+2025-07-28 21:56:44,211 - __main__ - ERROR - Content processing failed with error: FIREWORKS_API_KEY environment variable is required
+Traceback (most recent call last):
+  File "/Users/hanlynn/Projects/sentient/aidaily-digest/scripts/entrypoints/process_content.py", line 41, in main
+    processing_config = load_processing_config()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hanlynn/Projects/sentient/aidaily-digest/scripts/src/content_processor.py", line 361, in load_processing_config
+    raise ValueError("FIREWORKS_API_KEY environment variable is required")
+ValueError: FIREWORKS_API_KEY environment variable is required

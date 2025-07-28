@@ -15,10 +15,10 @@ from postgrest.exceptions import APIError as SupabaseAPIError
 import praw.exceptions
 
 # Import utility modules
-from .logging_config import get_script_logger
-from .validation_utils import sanitize_text, validate_reddit_id, validate_url, validate_score
-from .config_models import RedditConfig, SupabaseConfig, FetchConfig, load_config_from_env
-from .database_utils import (
+from src.utils.logging_config import get_script_logger
+from src.utils.validation_utils import sanitize_text, validate_reddit_id, validate_url, validate_score
+from src.config.config_models import RedditConfig, SupabaseConfig, FetchConfig, load_config_from_env
+from src.utils.database_utils import (
     batch_check_submissions_exist,
     batch_check_comments_exist,
     check_subreddit_exists,

@@ -10,12 +10,12 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Add the current directory to Python path
-sys.path.append(str(Path(__file__).parent))
+# Add the parent directory to Python path
+sys.path.append(str(Path(__file__).parent.parent))
 
 from src.reddit_fetcher import RedditFetcher
-from src.config_models import load_config_from_env
-from src.logging_config import setup_logging
+from src.config.config_models import load_config_from_env
+from src.utils.logging_config import setup_logging
 
 # Configure logging
 logger = setup_logging(

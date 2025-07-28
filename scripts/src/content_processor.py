@@ -15,9 +15,9 @@ from supabase import Client
 from postgrest import CountMethod
 from postgrest.exceptions import APIError as SupabaseAPIError
 
-from .logging_config import get_script_logger
-from .validation_utils import sanitize_text
-from .config_models import SupabaseConfig, load_config_from_env
+from src.utils.logging_config import get_script_logger
+from src.utils.validation_utils import sanitize_text
+from src.config.config_models import SupabaseConfig, load_config_from_env
 
 logger = get_script_logger(__name__)
 

@@ -16,8 +16,8 @@ from typing import Any, Optional
 sys.path.append(str(Path(__file__).parent))
 
 from src.reddit_fetcher import RedditFetcher
-from src.config_models import load_config_from_env, FetchConfig
-from src.logging_config import setup_logging
+from src.config.config_models import load_config_from_env, FetchConfig
+from src.utils.logging_config import setup_logging
 
 # Configure logging
 logger = setup_logging(

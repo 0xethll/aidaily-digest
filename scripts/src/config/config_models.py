@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import List
 from supabase import create_client
 from postgrest.exceptions import APIError as SupabaseAPIError
-from .logging_config import get_script_logger
+from src.utils.logging_config import get_script_logger
 
 logger = get_script_logger(__name__)
 
