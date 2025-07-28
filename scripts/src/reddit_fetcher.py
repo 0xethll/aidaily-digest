@@ -120,12 +120,8 @@ class RedditFetcher:
             return False
     
     def store_submission(self, submission: praw.models.Submission, subreddit_name: str) -> bool:
-        """Store a Reddit submission in Supabase"""
+        """Store or update a Reddit submission in Supabase"""
         try:
-            # Skip if already exists
-            if self.submission_exists(submission.id):
-                logger.debug(f"Submission {submission.id} already exists, skipping")
-                return True
             
             # Prepare submission data
             submission_data = {
@@ -146,14 +142,14 @@ class RedditFetcher:
                 'thumbnail': submission.thumbnail if hasattr(submission, 'thumbnail') else None
             }
             
-            # Insert into database
-            result = self.supabase.table('reddit_posts').insert(submission_data).execute()
+            # Upsert into database (insert or update if exists)
+            result = self.supabase.table('reddit_posts').upsert(submission_data).execute()
             
             if result.data:
-                logger.info(f"Stored submission: {submission.title[:50]}...")
+                logger.info(f"Stored/updated submission: {submission.title[:50]}...")
                 return True
             else:
-                logger.error(f"Failed to store submission: {submission.id}")
+                logger.error(f"Failed to store/update submission: {submission.id}")
                 return False
                 
         except Exception as e:
@@ -161,12 +157,8 @@ class RedditFetcher:
             return False
     
     def store_comment(self, comment: praw.models.Comment, post_reddit_id: str, parent_comment_reddit_id: Optional[str] = None, depth: int = 0) -> bool:
-        """Store a Reddit comment in Supabase"""
+        """Store or update a Reddit comment in Supabase"""
         try:
-            # Skip if already exists
-            if self.comment_exists(comment.id):
-                logger.debug(f"Comment {comment.id} already exists, skipping")
-                return True
             
             # Skip deleted/removed comments
             if comment.body in ['[deleted]', '[removed]', None]:
@@ -185,14 +177,14 @@ class RedditFetcher:
                 'depth': depth
             }
             
-            # Insert into database
-            result = self.supabase.table('reddit_comments').insert(comment_data).execute()
+            # Upsert into database (insert or update if exists)
+            result = self.supabase.table('reddit_comments').upsert(comment_data).execute()
             
             if result.data:
-                logger.debug(f"Stored comment: {comment.body[:30]}...")
+                logger.debug(f"Stored/updated comment: {comment.body[:30]}...")
                 return True
             else:
-                logger.error(f"Failed to store comment: {comment.id}")
+                logger.error(f"Failed to store/update comment: {comment.id}")
                 return False
                 
         except Exception as e:
@@ -291,7 +283,6 @@ class RedditFetcher:
         self, 
         subreddit_name: str, 
         limit: int = 25,
-        time_filter: str = "day"
     ) -> int:
         """Fetch submissions from a specific subreddit"""
         logger.info(f"Fetching submissions from r/{subreddit_name}")
@@ -305,15 +296,7 @@ class RedditFetcher:
             subreddit = self.reddit.subreddit(subreddit_name)
             stored_count = 0
             
-            # Fetch hot posts from the last 24 hours
-            for submission in subreddit.hot(limit=limit):
-                # Check if post is from the last 24 hours
-                post_time = datetime.fromtimestamp(submission.created_utc, tz=timezone.utc)
-                cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
-                
-                if post_time < cutoff_time:
-                    continue
-                
+            for submission in subreddit.hot(limit=limit):                
                 # Apply basic filtering
                 if self._should_include_submission(submission):
                     if self.store_submission(submission, subreddit_name):
