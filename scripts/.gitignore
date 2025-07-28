@@ -1,0 +1,5 @@
+.env
+.venv
+.claude
+reddit_fetch.log
+__pycache__

@@ -3,7 +3,7 @@ Configuration data models for Reddit fetcher
 """
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from supabase import create_client
 from postgrest.exceptions import APIError as SupabaseAPIError
@@ -36,7 +36,7 @@ class FetchConfig:
     max_comments_per_post: int = 10
     max_comment_depth: int = 2
     min_comment_score: int = 2
-    target_subreddits: List[str] = []
+    target_subreddits: List[str] = field(default_factory=list)
     min_submission_score: int = 5
     max_title_length: int = 300
     max_content_length: int = 40000
@@ -92,7 +92,7 @@ def load_config_from_env() -> tuple[RedditConfig, SupabaseConfig, FetchConfig]:
     _validate_database_connection(supabase_config)
     
     # Parse target subreddits from environment
-    target_subreddits_str = os.getenv('TARGET_SUBREDDITS', 'AI_Agents,artificial,ClaudeAI,huggingface,LangChain,LocalLLaMA,OpenAI,PromptEngineering,singularity')
+    target_subreddits_str = os.getenv('TARGET_SUBREDDITS', 'AI_Agents,artificial,ClaudeAI,LangChain,LocalLLaMA,OpenAI,PromptEngineering,singularity')
     target_subreddits = [s.strip() for s in target_subreddits_str.split(',') if s.strip()]
     
     fetch_config = FetchConfig(

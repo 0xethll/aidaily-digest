@@ -16,7 +16,7 @@ This module fetches daily submissions from AI-related subreddits and stores them
 - r/AI_Agents
 - r/artificial
 - r/ClaudeAI
-- r/huggingface
+<!-- - r/huggingface -->
 - r/LangChain
 - r/LocalLLaMA
 - r/OpenAI
@@ -97,6 +97,7 @@ Add to your crontab for daily execution at 8 AM:
 ### Content Filtering
 
 Posts are filtered based on:
+
 - Minimum score threshold (5 points)
 - Age (last 24 hours only)
 - Quality checks (not deleted/removed, sufficient title length)
@@ -105,6 +106,7 @@ Posts are filtered based on:
 ### Database Schema
 
 The Supabase schema includes:
+
 - `subreddits`: Target subreddit information
 - `reddit_posts`: Individual submissions with metadata
 - `reddit_comments`: Comments (optional)
