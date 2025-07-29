@@ -6,6 +6,7 @@ Handles LLM-based summarization, categorization, and keyword extraction
 import json
 import os
 import re
+import time
 from datetime import datetime, timezone
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
@@ -18,6 +19,7 @@ from postgrest.exceptions import APIError as SupabaseAPIError
 
 from src.utils.logging_config import get_script_logger
 from src.utils.validation_utils import sanitize_text
+from src.utils.url_fetcher import URLFetcher
 from src.config.config_models import SupabaseConfig, load_config_from_env
 
 logger = get_script_logger(__name__)
@@ -34,6 +36,11 @@ class ProcessingConfig:
     batch_size: int = 10
     timeout: float = 120.0  # 2 minutes timeout
     request_delay: float = 1.0  # Delay between requests
+    # URL fetching configuration
+    fetch_url_content: bool = True
+    url_timeout: float = 10.0  # URL fetch timeout
+    max_content_length: int = 5000  # Max chars from fetched content
+    user_agent: str = "Mozilla/5.0 (compatible; AIDigestBot/1.0)"
 
 
 class ContentProcessor:
@@ -58,9 +65,25 @@ class ContentProcessor:
             supabase_config.url,
             supabase_config.key
         )
+        
+        # Initialize URL fetcher if enabled
+        if processing_config.fetch_url_content:
+            self.url_fetcher = URLFetcher(
+                timeout=processing_config.url_timeout,
+                max_content_length=processing_config.max_content_length,
+                user_agent=processing_config.user_agent
+            )
+        else:
+            self.url_fetcher = None
+    
+    def _is_image_url(self, url: str) -> bool:
+        """Check if URL points to an image or non-analyzable content"""
+        if self.url_fetcher:
+            return self.url_fetcher.is_image_url(url)
+        return False
     
     def get_unprocessed_posts(self, limit: int = 50) -> List[Dict[str, Any]]:
-        """Get posts that haven't been processed yet"""
+        """Get posts that haven't been processed yet and have content or URL to analyze"""
         try:
             result = self.supabase.table('reddit_posts')\
                 .select('*')\
@@ -69,12 +92,30 @@ class ContentProcessor:
                 .limit(limit)\
                 .execute()
             
-            return result.data or []
+            posts = result.data or []
+            
+            # Filter out posts with no analyzable content
+            filtered_posts = []
+            for post in posts:
+                has_content = post.get('content') and post['content'].strip()
+                url = post.get('url')
+                has_analyzable_url = url and url.strip() and not self._is_image_url(url)
+                
+                # Include post if it has content OR has a non-image URL
+                if has_content or has_analyzable_url:
+                    filtered_posts.append(post)
+                    
+                if len(filtered_posts) >= limit:
+                    break
+            
+            logger.debug(f"Filtered {len(posts)} posts down to {len(filtered_posts)} processable posts (skipped image-only posts)")
+            return filtered_posts
+            
         except SupabaseAPIError as e:
             logger.error(f"Database error fetching unprocessed posts: {e}")
             return []
     
-    def create_processing_prompt(self, title: str, content: Optional[str] = None, url: Optional[str] = None) -> str:
+    def create_processing_prompt(self, title: str, content: Optional[str] = None, url: Optional[str] = None, fetched_content: Optional[str] = None) -> str:
         """Create a structured prompt for content processing"""
         prompt = f"""You are an AI content analyst specializing in AI and technology content. Analyze the following Reddit post and provide:
 
@@ -94,11 +135,14 @@ class ContentProcessor:
 POST DATA:
 Title: {title}"""
 
-        if content and content.strip():
-            prompt += f"\nContent: {content[:2000]}..."  # Limit content length
+        # Prioritize fetched content over original post content
+        if fetched_content and fetched_content.strip():
+            prompt += f"\nLinked Article Content: {fetched_content[:3000]}..."  # More space for fetched content
+        elif content and content.strip():
+            prompt += f"\nPost Content: {content[:2000]}..."
         
         if url:
-            prompt += f"\nURL: {url}"
+            prompt += f"\nSource URL: {url}"
         
         prompt += """
 
@@ -114,14 +158,22 @@ Respond in this exact JSON format:
     def process_single_post(self, post: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Process a single post using the LLM"""
         try:
+            # Fetch URL content if enabled and URL exists
+            fetched_content = None
+            url = post.get('url')
+            if self.url_fetcher and url:
+                fetched_content = self.url_fetcher.fetch_content(url)
+                if fetched_content:
+                    logger.info(f"Fetched content from URL for post: {post['title'][:50]}...")
+            
             prompt = self.create_processing_prompt(
                 title=post['title'],
                 content=post.get('content'),
-                url=post.get('url')
+                url=url,
+                fetched_content=fetched_content
             )
             
             # Add delay between requests to avoid rate limiting
-            import time
             time.sleep(self.processing_config.request_delay)
             
             # Make API call to Fireworks
@@ -403,7 +455,12 @@ def load_processing_config() -> ProcessingConfig:
         max_tokens=int(os.getenv('PROCESSING_MAX_TOKENS', '1000')),
         batch_size=int(os.getenv('PROCESSING_BATCH_SIZE', '5')),  # Reduced batch size
         timeout=float(os.getenv('PROCESSING_TIMEOUT', '120.0')),
-        request_delay=float(os.getenv('PROCESSING_REQUEST_DELAY', '2.0'))  # 2 second delay
+        request_delay=float(os.getenv('PROCESSING_REQUEST_DELAY', '2.0')),  # 2 second delay
+        # URL fetching config
+        fetch_url_content=os.getenv('FETCH_URL_CONTENT', 'true').lower() == 'true',
+        url_timeout=float(os.getenv('URL_TIMEOUT', '10.0')),
+        max_content_length=int(os.getenv('MAX_CONTENT_LENGTH', '5000')),
+        user_agent=os.getenv('USER_AGENT', 'Mozilla/5.0 (compatible; AIDigestBot/1.0)')
     )
 
 

@@ -5,10 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "beautifulsoup4>=4.12.0",
     "fireworks-ai>=0.17.16",
     "httpx[socks]>=0.28.1",
     "openai>=1.97.1",
     "praw>=7.8.1",
     "python-dotenv>=1.1.1",
+    "readability-lxml>=0.8.4.1",
+    "requests>=2.32.4",
     "supabase>=2.17.0",
 ]
