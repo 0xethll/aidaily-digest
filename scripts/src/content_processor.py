@@ -39,7 +39,7 @@ class ProcessingConfig:
     # URL fetching configuration
     fetch_url_content: bool = True
     url_timeout: float = 10.0  # URL fetch timeout
-    max_content_length: int = 5000  # Max chars from fetched content
+    max_content_length: int = 10000  # Max chars from combined content
     user_agent: str = "Mozilla/5.0 (compatible; AIDigestBot/1.0)"
 
 
@@ -135,11 +135,24 @@ class ContentProcessor:
 POST DATA:
 Title: {title}"""
 
-        # Prioritize fetched content over original post content
-        if fetched_content and fetched_content.strip():
-            prompt += f"\nLinked Article Content: {fetched_content[:3000]}..."  # More space for fetched content
+        # Smart content allocation: combine both sources intelligently
+        total_content_limit = self.processing_config.max_content_length
+        
+        if fetched_content and fetched_content.strip() and content and content.strip():
+            # Both sources available: 70% fetched content, 30% post content
+            fetched_limit = int(total_content_limit * 0.7)
+            post_limit = int(total_content_limit * 0.3)
+            
+            prompt += f"\nLinked Article Content: {fetched_content[:fetched_limit]}..."
+            prompt += f"\nReddit Post Content: {content[:post_limit]}..."
+            
+        elif fetched_content and fetched_content.strip():
+            # Only fetched content available
+            prompt += f"\nLinked Article Content: {fetched_content[:total_content_limit]}..."
+            
         elif content and content.strip():
-            prompt += f"\nPost Content: {content[:2000]}..."
+            # Only post content available
+            prompt += f"\nPost Content: {content[:total_content_limit]}..."
         
         if url:
             prompt += f"\nSource URL: {url}"
@@ -164,8 +177,12 @@ Respond in this exact JSON format:
             if self.url_fetcher and url:
                 fetched_content = self.url_fetcher.fetch_content(url)
                 if fetched_content:
-                    logger.info(f"Fetched content from URL for post: {post['title'][:50]}...")
-            
+                    logger.info(f"✅ Fetched content from URL for post: {post['title'][:50]}...")
+                    logger.info(f"✅ Fetched content: {fetched_content[:500]}")
+                else:
+                    logger.error(f"❌ Failed to fetch external URL content for url: {url}")
+                    return None
+                    
             prompt = self.create_processing_prompt(
                 title=post['title'],
                 content=post.get('content'),
@@ -459,7 +476,7 @@ def load_processing_config() -> ProcessingConfig:
         # URL fetching config
         fetch_url_content=os.getenv('FETCH_URL_CONTENT', 'true').lower() == 'true',
         url_timeout=float(os.getenv('URL_TIMEOUT', '10.0')),
-        max_content_length=int(os.getenv('MAX_CONTENT_LENGTH', '5000')),
+        max_content_length=int(os.getenv('MAX_CONTENT_LENGTH', '10000')),
         user_agent=os.getenv('USER_AGENT', 'Mozilla/5.0 (compatible; AIDigestBot/1.0)')
     )
 

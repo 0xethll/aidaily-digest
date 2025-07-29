@@ -60,6 +60,7 @@ class URLFetcher:
     def fetch_content(self, url: str) -> Optional[str]:
         """Fetch and extract readable content from URL"""
         if not url or self.is_image_url(url):
+            logger.debug(f"❌ It is an image url: {url}")
             return None
         
         try:
@@ -86,13 +87,24 @@ class URLFetcher:
             # Check content type
             content_type = response.headers.get('content-type', '').lower()
             if not any(ct in content_type for ct in ['text/html', 'application/xhtml']):
-                logger.debug(f"Skipping non-HTML content type: {content_type}")
+                logger.debug(f"❌ Skipping non-HTML content type: {content_type}")
                 return None
             
+            # Decode response content to string for readability
+            html_content = response.content
+            if isinstance(html_content, bytes):
+                html_content = html_content.decode('utf-8', errors='ignore')
+            
             # Use readability to extract main content
-            doc = Document(response.content)
+            doc = Document(html_content)
             title = doc.title()
             content = doc.summary()
+            
+            # Ensure title and content are strings, not bytes
+            if isinstance(title, bytes):
+                title = title.decode('utf-8', errors='ignore')
+            if isinstance(content, bytes):
+                content = content.decode('utf-8', errors='ignore')
             
             # Parse with BeautifulSoup to clean up
             soup = BeautifulSoup(content, 'html.parser')
@@ -103,6 +115,10 @@ class URLFetcher:
             
             # Get clean text
             clean_text = soup.get_text(separator=' ', strip=True)
+            
+            # Ensure clean_text is a string, not bytes
+            if isinstance(clean_text, bytes):
+                clean_text = clean_text.decode('utf-8', errors='ignore')
             
             # Clean up whitespace
             clean_text = re.sub(r'\s+', ' ', clean_text).strip()
@@ -117,15 +133,15 @@ class URLFetcher:
             else:
                 result = clean_text
             
-            logger.debug(f"Successfully fetched content from {urlparse(url).netloc} ({len(result)} chars)")
+            logger.debug(f"✅ Successfully fetched content from {urlparse(url).netloc} ({len(result)} chars)")
             return result if result.strip() else None
             
         except requests.exceptions.Timeout:
-            logger.warning(f"Timeout fetching URL: {url}")
+            logger.warning(f"❌ Timeout fetching URL: {url}")
             return None
         except requests.exceptions.RequestException as e:
-            logger.warning(f"Error fetching URL {url}: {e}")
+            logger.warning(f"❌ Error fetching URL {url}: {e}")
             return None
         except Exception as e:
-            logger.error(f"Unexpected error fetching URL {url}: {e}")
+            logger.error(f"❌ Unexpected error fetching URL {url}: {e}")
             return None
