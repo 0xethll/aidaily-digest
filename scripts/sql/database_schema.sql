@@ -36,6 +36,8 @@ CREATE TABLE reddit_posts (
     content_type VARCHAR(50), -- news, discussion, tutorial, question, tool, research, etc.
     keywords TEXT[], -- array of extracted keywords
     content_processed_at TIMESTAMP WITH TIME ZONE,
+    processing_status VARCHAR(20) DEFAULT 'pending', -- pending, processed, url_fetch_failed, processing_failed
+    url_fetch_attempts INTEGER DEFAULT 0,
     
     -- Metadata
     fetched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -124,3 +126,28 @@ CREATE TRIGGER update_reddit_posts_updated_at
 CREATE TRIGGER update_daily_digests_updated_at 
     BEFORE UPDATE ON daily_digests 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Create a view for randomly selecting failed posts
+
+CREATE OR REPLACE VIEW random_failed_posts AS
+SELECT *
+FROM reddit_posts
+WHERE processing_status IN ('processing_failed', 'url_fetch_failed')
+ORDER BY RANDOM();
+
+-- Create function to increment URL fetch attempts
+CREATE OR REPLACE FUNCTION increment_url_fetch_attempts(post_reddit_id text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+BEGIN
+    UPDATE public.reddit_posts 
+    SET url_fetch_attempts = COALESCE(url_fetch_attempts, 0) + 1
+    WHERE reddit_id = post_reddit_id;
+    
+    -- Return true if a row was updated
+    RETURN FOUND;
+END;
+$$;

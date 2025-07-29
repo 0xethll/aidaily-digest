@@ -67,7 +67,7 @@ def main():
         unprocessed_count = stats.get('unprocessed_posts', 0)
         if unprocessed_count > 0:
             logger.info(f"Starting to process {unprocessed_count} unprocessed posts...")
-            result_stats = processor.process_all_unprocessed(limit=100)
+            result_stats = processor.process_all_unprocessed(limit=50)
             
             # Log results
             logger.info("=" * 50)

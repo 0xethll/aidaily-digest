@@ -82,12 +82,12 @@ class ContentProcessor:
             return self.url_fetcher.is_image_url(url)
         return False
     
-    def get_unprocessed_posts(self, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_unprocessed_posts(self, limit: int = 50) -> tuple[List[Dict[str, Any]], int]:
         """Get posts that haven't been processed yet and have content or URL to analyze"""
         try:
             result = self.supabase.table('reddit_posts')\
                 .select('*')\
-                .is_('content_processed_at', 'null')\
+                .eq('processing_status', 'pending')\
                 .order('created_utc', desc=True)\
                 .limit(limit)\
                 .execute()
@@ -104,15 +104,46 @@ class ContentProcessor:
                 # Include post if it has content OR has a non-image URL
                 if has_content or has_analyzable_url:
                     filtered_posts.append(post)
+                else:
+                    reddit_id = post.get('reddit_id')
+                    if reddit_id:
+                        self.update_post_status(reddit_id, 'processed')
+                    # Log the reason for filtering out
+                    if not has_content and not url:
+                        logger.info(f"🚫 Filtered out post {post.get('reddit_id', 'unknown')}: No content and no URL")
+                    elif not has_content and url and self._is_image_url(url):
+                        logger.info(f"🚫 Filtered out post {post.get('reddit_id', 'unknown')}: No content and URL is image")
+                    elif not has_content and url and not url.strip():
+                        logger.info(f"🚫 Filtered out post {post.get('reddit_id', 'unknown')}: No content and empty URL")
+                    else:
+                        logger.info(f"🚫 Filtered out post {post.get('reddit_id', 'unknown')}: Unknown reason")
                     
                 if len(filtered_posts) >= limit:
                     break
             
             logger.debug(f"Filtered {len(posts)} posts down to {len(filtered_posts)} processable posts (skipped image-only posts)")
-            return filtered_posts
+            return filtered_posts, len(posts)
             
         except SupabaseAPIError as e:
             logger.error(f"Database error fetching unprocessed posts: {e}")
+            return [], 0
+        
+    def get_process_failed_posts(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get posts that failed processing and need to be retried (randomly selected)"""
+        try:
+            # Use the random_failed_posts view for efficient random selection
+            result = self.supabase.table('random_failed_posts')\
+                .select('*')\
+                .limit(limit)\
+                .execute()
+            
+            posts = result.data or []
+            
+            logger.info(f"🔁 Found {len(posts)} posts with failed processing or URL fetch status")
+            return posts
+            
+        except SupabaseAPIError as e:
+            logger.error(f"⚠️ Database error fetching failed posts: {e}")
             return []
     
     def create_processing_prompt(self, title: str, content: Optional[str] = None, url: Optional[str] = None, fetched_content: Optional[str] = None) -> str:
@@ -180,7 +211,9 @@ Respond in this exact JSON format:
                     logger.info(f"✅ Fetched content from URL for post: {post['title'][:50]}...")
                     logger.info(f"✅ Fetched content: {fetched_content[:500]}")
                 else:
-                    logger.error(f"❌ Failed to fetch external URL content for url: {url}")
+                    logger.warning(f"⚠️ Failed to fetch external URL content for url: {url}")
+                    self.increment_url_fetch_attempts(post['reddit_id'])
+                    self.update_post_status(post['reddit_id'], 'url_fetch_failed')
                     return None
                     
             prompt = self.create_processing_prompt(
@@ -326,7 +359,8 @@ Respond in this exact JSON format:
                 'summary': processed_data['summary'],
                 'content_type': processed_data['category'],
                 'keywords': processed_data['keywords'],
-                'content_processed_at': datetime.now(timezone.utc).isoformat()
+                'content_processed_at': datetime.now(timezone.utc).isoformat(),
+                'processing_status': 'processed'
             }
             
             result = self.supabase.table('reddit_posts')\
@@ -344,6 +378,50 @@ Respond in this exact JSON format:
         except SupabaseAPIError as e:
             logger.error(f"Database error updating post {reddit_id}: {e}")
             return False
+        
+    def update_post_status(self, reddit_id: str, status: str) -> bool:
+        """Update a post's processing status"""
+        try:
+            update_data = {
+                'processing_status': status,
+                'content_processed_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            result = self.supabase.table('reddit_posts')\
+                .update(update_data)\
+                .eq('reddit_id', reddit_id)\
+                .execute()
+            
+            if result.data:
+                logger.debug(f"Updated post {reddit_id} status to {status}")
+                return True
+            else:
+                logger.error(f"Failed to update post {reddit_id} status")
+                return False
+                
+        except SupabaseAPIError as e:
+            logger.error(f"Database error updating post {reddit_id}: {e}")
+            return False
+
+    def increment_url_fetch_attempts(self, reddit_id: str) -> bool:
+        """Increment the URL fetch attempts counter for a post"""
+        try:
+            # Use the PostgreSQL function to increment the counter
+            result = self.supabase.rpc('increment_url_fetch_attempts', {
+                'post_reddit_id': reddit_id
+            }).execute()
+            
+            # The function returns a boolean indicating if a row was updated
+            if result.data:
+                logger.debug(f"Incremented URL fetch attempts for post {reddit_id}")
+                return True
+            else:
+                logger.error(f"Failed to increment URL fetch attempts for post {reddit_id} - post not found")
+                return False
+                
+        except SupabaseAPIError as e:
+            logger.error(f"❌ Database error incrementing URL fetch attempts for post {reddit_id}: {e}")
+            return False
     
     def process_batch(self, posts: List[Dict[str, Any]]) -> Dict[str, int]:
         """Process a batch of posts"""
@@ -355,8 +433,8 @@ Respond in this exact JSON format:
         
         for post in posts:
             try:
-                # Skip if already processed
-                if post.get('content_processed_at'):
+                # Skip if already processed or failed
+                if post.get('processing_status') == 'processed':
                     stats['skipped'] += 1
                     continue
                 
@@ -370,15 +448,18 @@ Respond in this exact JSON format:
                     else:
                         stats['failed'] += 1
                 else:
+                    # Mark as processing failed
+                    self.update_post_status(post['reddit_id'], 'processing_failed')
                     stats['failed'] += 1
                     
             except Exception as e:
                 logger.error(f"Error in batch processing for post {post['reddit_id']}: {e}")
+                self.update_post_status(post['reddit_id'], 'processing_failed')
                 stats['failed'] += 1
         
         return stats
     
-    def process_all_unprocessed(self, limit: int = 100) -> Dict[str, int]:
+    def process_all_unprocessed(self, limit: int = 50) -> Dict[str, int]:
         """Process all unprocessed posts in batches"""
         logger.info("Starting content processing for unprocessed posts")
         
@@ -389,17 +470,12 @@ Respond in this exact JSON format:
         }
         
         batch_size = self.processing_config.batch_size
-        offset = 0
-        
-        while offset < limit:
+                
+        while True:
             # Get batch of unprocessed posts
-            posts = self.get_unprocessed_posts(limit=min(batch_size, limit - offset))
+            posts, actual_query_count = self.get_unprocessed_posts(limit=min(batch_size, limit))
             
-            if not posts:
-                logger.info("No more unprocessed posts found")
-                break
-            
-            logger.info(f"Processing batch of {len(posts)} posts (offset: {offset})")
+            logger.info(f"🙋‍♂️ Processing batch of {actual_query_count} posts")
             
             # Process batch
             batch_stats = self.process_batch(posts)
@@ -410,12 +486,20 @@ Respond in this exact JSON format:
             
             logger.info(f"Batch completed: {batch_stats}")
             
-            offset += len(posts)
-            
             # If we got fewer posts than batch size, we're done
-            if len(posts) < batch_size:
+            if actual_query_count < batch_size:
+                logger.info("No more unprocessed posts found")
                 break
         
+        # Retry any posts that failed processing
+        failed_posts = self.get_process_failed_posts()
+        if failed_posts:
+            logger.info(f"🔄 Retrying {len(failed_posts)} previously failed posts")
+            retry_stats = self.process_batch(failed_posts)
+            for key in total_stats:
+                total_stats[key] += retry_stats[key]
+            logger.info(f"Retry batch completed: {retry_stats}")
+
         logger.info(f"Content processing completed. Final stats: {total_stats}")
         return total_stats
     
@@ -431,9 +515,16 @@ Respond in this exact JSON format:
             # Processed posts
             processed_result = self.supabase.table('reddit_posts')\
                 .select('reddit_id', count=CountMethod.exact)\
-                .not_.is_('content_processed_at', 'null')\
+                .eq('processing_status', 'processed')\
                 .execute()
             processed_posts = processed_result.count or 0
+            
+            # Failed URL fetch posts
+            url_failed_result = self.supabase.table('reddit_posts')\
+                .select('reddit_id', count=CountMethod.exact)\
+                .eq('processing_status', 'url_fetch_failed')\
+                .execute()
+            url_failed_posts = url_failed_result.count or 0
             
             # Category breakdown
             category_result = self.supabase.table('reddit_posts')\
@@ -449,7 +540,8 @@ Respond in this exact JSON format:
             return {
                 'total_posts': total_posts,
                 'processed_posts': processed_posts,
-                'unprocessed_posts': total_posts - processed_posts,
+                'url_failed_posts': url_failed_posts,
+                'unprocessed_posts': total_posts - processed_posts - url_failed_posts,
                 'processing_rate': round((processed_posts / total_posts * 100), 2) if total_posts > 0 else 0,
                 'category_breakdown': category_counts
             }
