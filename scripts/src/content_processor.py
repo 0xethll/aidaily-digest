@@ -11,6 +11,7 @@ from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 
 import openai
+from fireworks.client import Fireworks
 from supabase import Client
 from postgrest import CountMethod
 from postgrest.exceptions import APIError as SupabaseAPIError
@@ -31,6 +32,8 @@ class ProcessingConfig:
     temperature: float = 0.1
     max_tokens: int = 1000
     batch_size: int = 10
+    timeout: float = 120.0  # 2 minutes timeout
+    request_delay: float = 1.0  # Delay between requests
 
 
 class ContentProcessor:
@@ -40,10 +43,13 @@ class ContentProcessor:
         self.supabase_config = supabase_config
         self.processing_config = processing_config
         
-        # Initialize OpenAI client with Fireworks endpoint
+        # Initialize Fireworks client
+        # self.client = Fireworks(api_key=processing_config.fireworks_api_key)
+
         self.client = openai.OpenAI(
             base_url="https://api.fireworks.ai/inference/v1",
-            api_key=processing_config.fireworks_api_key
+            api_key=processing_config.fireworks_api_key,
+            timeout=processing_config.timeout
         )
         
         # Initialize Supabase client
@@ -114,13 +120,17 @@ Respond in this exact JSON format:
                 url=post.get('url')
             )
             
+            # Add delay between requests to avoid rate limiting
+            import time
+            time.sleep(self.processing_config.request_delay)
+            
             # Make API call to Fireworks
             response = self.client.chat.completions.create(
                 model=self.processing_config.model_name,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a helpful AI assistant that analyzes content and responds only in valid JSON format."
+                        "content": "You MUST respond with ONLY valid JSON. Do not include any explanatory text, prefixes, or comments. Start your response directly with the opening brace { and end with the closing brace }."
                     },
                     {
                         "role": "user",
@@ -134,14 +144,39 @@ Respond in this exact JSON format:
             # Parse the response
             response_text = response.choices[0].message.content
             if response_text is None:
-                raise ValueError("OpenAI API returned None content")
+                logger.error(f"API returned None content for post {post['reddit_id']}")
+                return None
+            
             response_text = response_text.strip()
             
-            # Clean up response (remove code blocks if present)
+            # Log the raw response for debugging
+            logger.debug(f"Raw API response for post {post['reddit_id']}: {repr(response_text)}")
+            
+            if not response_text:
+                logger.error(f"API returned empty response for post {post['reddit_id']}")
+                return None
+            
+            # Clean up response (remove code blocks and prefix text if present)
             if response_text.startswith('```json'):
                 response_text = response_text[7:]
             if response_text.endswith('```'):
                 response_text = response_text[:-3]
+            
+            # Remove common prefix text that the model adds
+            prefixes_to_remove = [
+                "Here is the analysis of the Reddit post:",
+                "Here is the analysis:",
+                "Analysis:",
+                "Here's the analysis:",
+                "The analysis is:"
+            ]
+            
+            for prefix in prefixes_to_remove:
+                if response_text.strip().startswith(prefix):
+                    response_text = response_text.strip()[len(prefix):].strip()
+                    break
+            
+            response_text = response_text.strip()
             
             # Parse JSON
             try:
@@ -164,7 +199,8 @@ Respond in this exact JSON format:
                 
             except json.JSONDecodeError as e:
                 logger.error(f"JSON decode error for post {post['reddit_id']}: {e}")
-                logger.debug(f"Raw response: {response_text}")
+                logger.error(f"Raw response that failed to parse: {repr(response_text)}")
+                logger.error(f"Response length: {len(response_text)}")
                 return None
                 
         except Exception as e:
@@ -365,7 +401,9 @@ def load_processing_config() -> ProcessingConfig:
         model_name=os.getenv('FIREWORKS_MODEL', 'accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new'),
         temperature=float(os.getenv('PROCESSING_TEMPERATURE', '0.1')),
         max_tokens=int(os.getenv('PROCESSING_MAX_TOKENS', '1000')),
-        batch_size=int(os.getenv('PROCESSING_BATCH_SIZE', '10'))
+        batch_size=int(os.getenv('PROCESSING_BATCH_SIZE', '5')),  # Reduced batch size
+        timeout=float(os.getenv('PROCESSING_TIMEOUT', '120.0')),
+        request_delay=float(os.getenv('PROCESSING_REQUEST_DELAY', '2.0'))  # 2 second delay
     )
 
 

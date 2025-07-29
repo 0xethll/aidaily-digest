@@ -1,14 +1,546 @@
-2025-07-28 21:56:36,616 - __main__ - INFO - ==================================================
-2025-07-28 21:56:36,616 - __main__ - INFO - Starting content processing
-2025-07-28 21:56:36,616 - __main__ - INFO - ==================================================
-2025-07-28 21:56:36,617 - __main__ - INFO - Loading configuration...
-2025-07-28 21:56:44,204 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/subreddits?select=name&limit=1 "HTTP/2 200 OK"
-2025-07-28 21:56:44,210 - src.config.config_models - INFO - Database connectivity validated successfully
-2025-07-28 21:56:44,211 - __main__ - ERROR - Content processing failed with error: FIREWORKS_API_KEY environment variable is required
-Traceback (most recent call last):
-  File "/Users/hanlynn/Projects/sentient/aidaily-digest/scripts/entrypoints/process_content.py", line 41, in main
-    processing_config = load_processing_config()
-                        ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/hanlynn/Projects/sentient/aidaily-digest/scripts/src/content_processor.py", line 361, in load_processing_config
-    raise ValueError("FIREWORKS_API_KEY environment variable is required")
-ValueError: FIREWORKS_API_KEY environment variable is required
+2025-07-28 22:24:41,798 - __main__ - INFO - ==================================================
+2025-07-28 22:24:41,798 - __main__ - INFO - Starting content processing
+2025-07-28 22:24:41,798 - __main__ - INFO - ==================================================
+2025-07-28 22:24:41,799 - __main__ - INFO - Loading configuration...
+2025-07-28 22:24:49,642 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/subreddits?select=name&limit=1 "HTTP/2 200 OK"
+2025-07-28 22:24:49,645 - src.config.config_models - INFO - Database connectivity validated successfully
+2025-07-28 22:24:49,646 - __main__ - INFO - Configuration loaded successfully
+2025-07-28 22:24:49,646 - __main__ - INFO - Model: accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new
+2025-07-28 22:24:49,646 - __main__ - INFO - Batch size: 10
+2025-07-28 22:24:49,646 - __main__ - INFO - Temperature: 0.1
+2025-07-28 22:24:49,646 - __main__ - INFO - Initializing content processor...
+2025-07-28 22:24:49,765 - __main__ - INFO - Content processor initialized successfully
+2025-07-28 22:24:49,765 - __main__ - INFO - Getting current processing statistics...
+2025-07-28 22:24:55,479 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id "HTTP/2 200 OK"
+2025-07-28 22:24:55,899 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id&content_processed_at=not.is.null "HTTP/2 200 OK"
+2025-07-28 22:24:56,284 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=content_type&content_type=not.is.null "HTTP/2 200 OK"
+2025-07-28 22:24:56,286 - __main__ - INFO - Total posts: 130
+2025-07-28 22:24:56,286 - __main__ - INFO - Processed posts: 0
+2025-07-28 22:24:56,286 - __main__ - INFO - Unprocessed posts: 130
+2025-07-28 22:24:56,286 - __main__ - INFO - Processing rate: 0.0%
+2025-07-28 22:24:56,286 - __main__ - INFO - Starting to process 130 unprocessed posts...
+2025-07-28 22:24:56,286 - src.content_processor - INFO - Starting content processing for unprocessed posts
+2025-07-28 22:24:56,702 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 22:24:56,706 - src.content_processor - INFO - Processing batch of 10 posts (offset: 0)
+2025-07-28 22:25:01,842 - openai._base_client - INFO - Retrying request to /chat/completions in 0.488371 seconds
+2025-07-28 22:25:07,339 - openai._base_client - INFO - Retrying request to /chat/completions in 0.879461 seconds
+2025-07-28 22:25:13,225 - src.content_processor - ERROR - Error processing post 1mbb4xz: Request timed out.
+2025-07-28 22:25:18,231 - openai._base_client - INFO - Retrying request to /chat/completions in 0.388500 seconds
+2025-07-28 22:25:23,625 - openai._base_client - INFO - Retrying request to /chat/completions in 0.917928 seconds
+2025-07-28 22:25:29,548 - src.content_processor - ERROR - Error processing post 1mbawpt: Request timed out.
+2025-07-28 22:25:34,554 - openai._base_client - INFO - Retrying request to /chat/completions in 0.497088 seconds
+2025-07-28 22:25:40,059 - openai._base_client - INFO - Retrying request to /chat/completions in 0.907718 seconds
+2025-07-28 22:25:45,976 - src.content_processor - ERROR - Error processing post 1mbavej: Request timed out.
+2025-07-28 22:25:50,981 - openai._base_client - INFO - Retrying request to /chat/completions in 0.375906 seconds
+2025-07-28 22:25:56,365 - openai._base_client - INFO - Retrying request to /chat/completions in 0.851325 seconds
+2025-07-28 22:26:02,223 - src.content_processor - ERROR - Error processing post 1mbalxg: Request timed out.
+2025-07-28 22:26:07,228 - openai._base_client - INFO - Retrying request to /chat/completions in 0.476956 seconds
+2025-07-28 22:26:12,713 - openai._base_client - INFO - Retrying request to /chat/completions in 0.762684 seconds
+2025-07-28 22:26:18,486 - src.content_processor - ERROR - Error processing post 1mb9w0t: Request timed out.
+2025-07-28 22:26:23,492 - openai._base_client - INFO - Retrying request to /chat/completions in 0.443746 seconds
+2025-07-28 22:26:28,941 - openai._base_client - INFO - Retrying request to /chat/completions in 0.960435 seconds
+2025-07-28 22:26:34,905 - src.content_processor - ERROR - Error processing post 1mb9uy8: Request timed out.
+2025-07-28 22:26:39,910 - openai._base_client - INFO - Retrying request to /chat/completions in 0.398768 seconds
+2025-07-28 22:26:45,316 - openai._base_client - INFO - Retrying request to /chat/completions in 0.891962 seconds
+2025-07-28 22:26:51,214 - src.content_processor - ERROR - Error processing post 1mb9g33: Request timed out.
+2025-07-28 22:26:56,219 - openai._base_client - INFO - Retrying request to /chat/completions in 0.438402 seconds
+2025-07-28 22:27:01,664 - openai._base_client - INFO - Retrying request to /chat/completions in 0.822688 seconds
+2025-07-28 22:27:07,492 - src.content_processor - ERROR - Error processing post 1mb98cm: Request timed out.
+2025-07-28 22:27:12,496 - openai._base_client - INFO - Retrying request to /chat/completions in 0.397207 seconds
+2025-07-28 22:27:17,902 - openai._base_client - INFO - Retrying request to /chat/completions in 0.927497 seconds
+2025-07-28 22:27:23,838 - src.content_processor - ERROR - Error processing post 1mb95kp: Request timed out.
+2025-07-28 22:27:28,844 - openai._base_client - INFO - Retrying request to /chat/completions in 0.493142 seconds
+2025-07-28 22:27:34,346 - openai._base_client - INFO - Retrying request to /chat/completions in 0.860085 seconds
+2025-07-28 22:27:40,214 - src.content_processor - ERROR - Error processing post 1mb83ud: Request timed out.
+2025-07-28 22:27:40,215 - src.content_processor - INFO - Batch completed: {'processed': 0, 'failed': 10, 'skipped': 0}
+2025-07-28 22:27:47,489 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 22:27:47,491 - src.content_processor - INFO - Processing batch of 10 posts (offset: 10)
+2025-07-28 22:27:52,494 - openai._base_client - INFO - Retrying request to /chat/completions in 0.379093 seconds
+2025-07-28 22:27:57,878 - openai._base_client - INFO - Retrying request to /chat/completions in 0.834847 seconds
+2025-07-28 22:28:03,720 - src.content_processor - ERROR - Error processing post 1mbb4xz: Request timed out.
+2025-07-28 22:28:08,725 - openai._base_client - INFO - Retrying request to /chat/completions in 0.427492 seconds
+2025-07-28 22:28:14,161 - openai._base_client - INFO - Retrying request to /chat/completions in 0.793253 seconds
+2025-07-28 22:28:14,465 - __main__ - INFO - Process interrupted by user
+2025-07-28 22:43:49,549 - __main__ - INFO - ==================================================
+2025-07-28 22:43:49,550 - __main__ - INFO - Starting content processing
+2025-07-28 22:43:49,550 - __main__ - INFO - ==================================================
+2025-07-28 22:43:49,551 - __main__ - INFO - Loading configuration...
+2025-07-28 22:43:55,753 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/subreddits?select=name&limit=1 "HTTP/2 200 OK"
+2025-07-28 22:43:55,758 - src.config.config_models - INFO - Database connectivity validated successfully
+2025-07-28 22:43:55,759 - __main__ - INFO - Configuration loaded successfully
+2025-07-28 22:43:55,759 - __main__ - INFO - Model: accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new
+2025-07-28 22:43:55,759 - __main__ - INFO - Batch size: 10
+2025-07-28 22:43:55,759 - __main__ - INFO - Temperature: 0.1
+2025-07-28 22:43:55,759 - __main__ - INFO - Initializing content processor...
+2025-07-28 22:43:55,906 - __main__ - INFO - Content processor initialized successfully
+2025-07-28 22:43:55,907 - __main__ - INFO - Getting current processing statistics...
+2025-07-28 22:44:02,352 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id "HTTP/2 200 OK"
+2025-07-28 22:44:02,731 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id&content_processed_at=not.is.null "HTTP/2 200 OK"
+2025-07-28 22:44:03,172 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=content_type&content_type=not.is.null "HTTP/2 200 OK"
+2025-07-28 22:44:03,174 - __main__ - INFO - Total posts: 130
+2025-07-28 22:44:03,174 - __main__ - INFO - Processed posts: 0
+2025-07-28 22:44:03,174 - __main__ - INFO - Unprocessed posts: 130
+2025-07-28 22:44:03,174 - __main__ - INFO - Processing rate: 0.0%
+2025-07-28 22:44:03,174 - __main__ - INFO - Starting to process 130 unprocessed posts...
+2025-07-28 22:44:03,174 - src.content_processor - INFO - Starting content processing for unprocessed posts
+2025-07-28 22:44:03,613 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 22:44:03,614 - src.content_processor - INFO - Processing batch of 10 posts (offset: 0)
+2025-07-28 22:44:14,389 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:14,399 - src.content_processor - ERROR - JSON decode error for post 1mbb4xz: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:18,615 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:18,617 - src.content_processor - ERROR - JSON decode error for post 1mbawpt: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:23,115 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:23,118 - src.content_processor - ERROR - JSON decode error for post 1mbavej: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:27,364 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:27,366 - src.content_processor - ERROR - JSON decode error for post 1mbalxg: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:31,943 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:31,944 - src.content_processor - ERROR - JSON decode error for post 1mb9w0t: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:35,937 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:35,938 - src.content_processor - ERROR - JSON decode error for post 1mb9uy8: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:39,938 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:39,940 - src.content_processor - ERROR - JSON decode error for post 1mb9g33: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:44,113 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:44,117 - src.content_processor - ERROR - JSON decode error for post 1mb98cm: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:47,956 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:47,960 - src.content_processor - ERROR - JSON decode error for post 1mb95kp: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:52,732 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:44:52,736 - src.content_processor - ERROR - JSON decode error for post 1mb83ud: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:44:52,736 - src.content_processor - INFO - Batch completed: {'processed': 0, 'failed': 10, 'skipped': 0}
+2025-07-28 22:44:58,950 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 22:44:58,958 - src.content_processor - INFO - Processing batch of 10 posts (offset: 10)
+2025-07-28 22:45:08,092 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:45:08,094 - src.content_processor - ERROR - JSON decode error for post 1mbb4xz: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:45:12,049 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:45:12,053 - src.content_processor - ERROR - JSON decode error for post 1mbawpt: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:45:12,245 - __main__ - INFO - Process interrupted by user
+2025-07-28 22:56:56,936 - __main__ - INFO - ==================================================
+2025-07-28 22:56:56,937 - __main__ - INFO - Starting content processing
+2025-07-28 22:56:56,937 - __main__ - INFO - ==================================================
+2025-07-28 22:56:56,938 - __main__ - INFO - Loading configuration...
+2025-07-28 22:57:07,621 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/subreddits?select=name&limit=1 "HTTP/2 200 OK"
+2025-07-28 22:57:07,626 - src.config.config_models - INFO - Database connectivity validated successfully
+2025-07-28 22:57:07,627 - __main__ - INFO - Configuration loaded successfully
+2025-07-28 22:57:07,627 - __main__ - INFO - Model: accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new
+2025-07-28 22:57:07,627 - __main__ - INFO - Batch size: 10
+2025-07-28 22:57:07,627 - __main__ - INFO - Temperature: 0.1
+2025-07-28 22:57:07,627 - __main__ - INFO - Initializing content processor...
+2025-07-28 22:57:07,784 - __main__ - INFO - Content processor initialized successfully
+2025-07-28 22:57:07,784 - __main__ - INFO - Getting current processing statistics...
+2025-07-28 22:57:13,461 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id "HTTP/2 200 OK"
+2025-07-28 22:57:13,891 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id&content_processed_at=not.is.null "HTTP/2 200 OK"
+2025-07-28 22:57:14,298 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=content_type&content_type=not.is.null "HTTP/2 200 OK"
+2025-07-28 22:57:14,299 - __main__ - INFO - Total posts: 130
+2025-07-28 22:57:14,299 - __main__ - INFO - Processed posts: 0
+2025-07-28 22:57:14,299 - __main__ - INFO - Unprocessed posts: 130
+2025-07-28 22:57:14,299 - __main__ - INFO - Processing rate: 0.0%
+2025-07-28 22:57:14,299 - __main__ - INFO - Starting to process 130 unprocessed posts...
+2025-07-28 22:57:14,299 - src.content_processor - INFO - Starting content processing for unprocessed posts
+2025-07-28 22:57:14,724 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 22:57:14,727 - src.content_processor - INFO - Processing batch of 10 posts (offset: 0)
+2025-07-28 22:57:26,552 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:26,572 - src.content_processor - ERROR - JSON decode error for post 1mbb4xz: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:26,573 - src.content_processor - ERROR - Raw response that failed to parse: 'Here\'s the analysis of the Reddit post: \n\n{\n  "summary": "The post is about a mysterious removal of content, with the author seeking clarity on the reason behind it. They’ve shared an image related to the incident. The community is invited to speculate or provide insights into what might have triggered this removal.",\n  "category": "discussion",\n  "keywords": ["content removal", "Reddit mystery", "community speculation"]\n}'
+2025-07-28 22:57:26,573 - src.content_processor - ERROR - Response length: 426
+2025-07-28 22:57:30,334 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:30,336 - src.content_processor - ERROR - JSON decode error for post 1mbawpt: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:30,336 - src.content_processor - ERROR - Raw response that failed to parse: 'Here is the analysis of the Reddit post: \n{\n  "summary": "Construction workers in the first world might lose their jobs soon because robots are taking over. Skilled trades are fucked, and it’s happening fast as shit. Automation is the future, whether you like it or not.",\n  "category": "news",\n  "keywords": ["construction workers", "automation", "job loss", "robots in construction", "future of work"]\n}'
+2025-07-28 22:57:30,336 - src.content_processor - ERROR - Response length: 405
+2025-07-28 22:57:34,597 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:34,600 - src.content_processor - ERROR - JSON decode error for post 1mbavej: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:34,600 - src.content_processor - ERROR - Raw response that failed to parse: 'Here is the analysis of the Reddit post: {\n  "summary": "MCP servers can be a security nightmare if you’re not careful. The dev of Serena MCP laid out how easy it is to deploy an attack, especially if you’re blindly auto-updating. Only use servers from legit sources you can sue if shit hits the fan.",\n  "category": "discussion",\n  "keywords": ["MCP servers", "security risks", "auto-updates", "Serena MCP", "hacking", "safety"]\n}'
+2025-07-28 22:57:34,600 - src.content_processor - ERROR - Response length: 431
+2025-07-28 22:57:38,471 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:38,473 - src.content_processor - ERROR - JSON decode error for post 1mbalxg: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:38,474 - src.content_processor - ERROR - Raw response that failed to parse: 'Here is the analysis of the Reddit post: \n{\n  "summary": "Alibaba Cloud’s founder is hyping a massive AI overhaul, and honestly, it sounds like a fucking revolution. He’s talking job displacement, industry upheaval—basically, buckle up. AI is about to slap the shit out of the status quo.",\n  "category": "news",\n  "keywords": ["Alibaba Cloud", "AI shakeup", "job displacement", "industry disruption"]\n}'
+2025-07-28 22:57:38,474 - src.content_processor - ERROR - Response length: 403
+2025-07-28 22:57:42,309 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:42,312 - src.content_processor - ERROR - JSON decode error for post 1mb9w0t: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:42,312 - src.content_processor - ERROR - Raw response that failed to parse: 'Here is the analysis of the post: {\n  "summary": "The post discusses how automation is taking over jobs, but instead of freaking out, we should embrace it and focus on making work optional. Technology is here to fucking liberate us, not chain us to a desk forever. Let’s get with the times and make humans actually matter again.",\n  "category": "discussion",\n  "keywords": ["automation", "future of work", "technological liberation"]\n}'
+2025-07-28 22:57:42,312 - src.content_processor - ERROR - Response length: 435
+2025-07-28 22:57:46,268 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:46,272 - src.content_processor - ERROR - JSON decode error for post 1mb9uy8: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:46,272 - src.content_processor - ERROR - Raw response that failed to parse: 'Here is the analysis of the Reddit post: {\n  "summary": "The post shares a Hugging Face model, Qwen3-30B-A3B-Instruct-2507, with no additional context. It’s a model drop, plain and simple. If you want details, you’re shit out of luck here.",\n  "category": "showcase",\n  "keywords": ["Qwen3-30B-A3B-Instruct-2507", "Hugging Face", "AI model"]\n}'
+2025-07-28 22:57:46,272 - src.content_processor - ERROR - Response length: 343
+2025-07-28 22:57:50,123 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:50,128 - src.content_processor - ERROR - JSON decode error for post 1mb9g33: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:50,128 - src.content_processor - ERROR - Raw response that failed to parse: 'Here is the analysis of the Reddit post: {\n  "summary": "Several anonymous OpenAI models have ditched LMarena and Webdev, and no one knows why. This is some next-level shit in the AI world, and people are freaking out. The image in the post lays it all out.",\n  "category": "news",\n  "keywords": ["OpenAI", "LMarena", "Webdev", "AI models", "mystery exit"]\n}'
+2025-07-28 22:57:50,128 - src.content_processor - ERROR - Response length: 358
+2025-07-28 22:57:54,554 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:54,556 - src.content_processor - ERROR - JSON decode error for post 1mb98cm: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:54,556 - src.content_processor - ERROR - Raw response that failed to parse: 'Here is the analysis of the Reddit post: {\n  "summary": "The post speculates about the potential specs of the Granite 4 small and medium models, suggesting they could be 30B6A or 120B30A, and links to a YouTube video for more info. It’s a brief teaser that points to a video for the full scoop. The content is light on details but heavy on intrigue, leaving viewers to click for more.",\n  "category": "news",\n  "keywords": ["Granite 4", "30B6A", "120B30A", "AI models", "speculations", "YouTube"]\n}'
+2025-07-28 22:57:54,556 - src.content_processor - ERROR - Response length: 498
+2025-07-28 22:57:58,352 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 22:57:58,353 - src.content_processor - ERROR - JSON decode error for post 1mb95kp: Expecting value: line 1 column 1 (char 0)
+2025-07-28 22:57:58,353 - src.content_processor - ERROR - Raw response that failed to parse: 'Here is the analysis of the Reddit post: \n{\n  "summary": "The post is about Claude Custom Sub Agents, which are fucking incredible. Dude built 20 of them and is open-sourcing the shit out of it. This is next-level customization for AI models, and it’s a game-changer for developers.",\n  "category": "showcase",\n  "keywords": ["Claude Custom Sub Agents", "open-source", "AI customization"]\n}'
+2025-07-28 22:57:58,353 - src.content_processor - ERROR - Response length: 390
+2025-07-28 22:57:59,950 - __main__ - INFO - Process interrupted by user
+2025-07-28 23:01:36,175 - __main__ - INFO - ==================================================
+2025-07-28 23:01:36,175 - __main__ - INFO - Starting content processing
+2025-07-28 23:01:36,175 - __main__ - INFO - ==================================================
+2025-07-28 23:01:36,176 - __main__ - INFO - Loading configuration...
+2025-07-28 23:01:43,907 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/subreddits?select=name&limit=1 "HTTP/2 200 OK"
+2025-07-28 23:01:43,911 - src.config.config_models - INFO - Database connectivity validated successfully
+2025-07-28 23:01:43,912 - __main__ - INFO - Configuration loaded successfully
+2025-07-28 23:01:43,912 - __main__ - INFO - Model: accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new
+2025-07-28 23:01:43,912 - __main__ - INFO - Batch size: 10
+2025-07-28 23:01:43,912 - __main__ - INFO - Temperature: 0.1
+2025-07-28 23:01:43,912 - __main__ - INFO - Initializing content processor...
+2025-07-28 23:01:44,044 - __main__ - INFO - Content processor initialized successfully
+2025-07-28 23:01:44,044 - __main__ - INFO - Getting current processing statistics...
+2025-07-28 23:01:49,728 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id "HTTP/2 200 OK"
+2025-07-28 23:01:50,120 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id&content_processed_at=not.is.null "HTTP/2 200 OK"
+2025-07-28 23:01:50,518 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=content_type&content_type=not.is.null "HTTP/2 200 OK"
+2025-07-28 23:01:50,520 - __main__ - INFO - Total posts: 130
+2025-07-28 23:01:50,520 - __main__ - INFO - Processed posts: 0
+2025-07-28 23:01:50,520 - __main__ - INFO - Unprocessed posts: 130
+2025-07-28 23:01:50,520 - __main__ - INFO - Processing rate: 0.0%
+2025-07-28 23:01:50,520 - __main__ - INFO - Starting to process 130 unprocessed posts...
+2025-07-28 23:01:50,520 - src.content_processor - INFO - Starting content processing for unprocessed posts
+2025-07-28 23:01:50,998 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:01:51,000 - src.content_processor - INFO - Processing batch of 10 posts (offset: 0)
+2025-07-28 23:02:01,617 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:02:01,630 - src.content_processor - INFO - Successfully processed post: Something triggered this removal. Would be nice to...
+2025-07-28 23:02:08,008 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mbb4xz "HTTP/2 200 OK"
+2025-07-28 23:02:17,353 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:02:17,355 - src.content_processor - INFO - Successfully processed post: Construction workers may become obsolete soon in t...
+2025-07-28 23:02:22,972 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mbawpt "HTTP/2 200 OK"
+2025-07-28 23:02:32,537 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:02:32,539 - src.content_processor - INFO - Successfully processed post: MCP servers are scary unsafe. Always check who's b...
+2025-07-28 23:02:38,133 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mbavej "HTTP/2 200 OK"
+2025-07-28 23:02:47,317 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:02:47,320 - src.content_processor - INFO - Successfully processed post: Big AI shakeup coming - Alibaba cloud founder...
+2025-07-28 23:02:54,614 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mbalxg "HTTP/2 200 OK"
+2025-07-28 23:03:07,439 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:03:07,443 - src.content_processor - INFO - Successfully processed post: The Revolution Will Be Automated...
+2025-07-28 23:03:14,662 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb9w0t "HTTP/2 200 OK"
+2025-07-28 23:03:24,213 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:03:24,223 - src.content_processor - INFO - Successfully processed post: Qwen/Qwen3-30B-A3B-Instruct-2507 · Hugging Face...
+2025-07-28 23:03:30,200 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb9uy8 "HTTP/2 200 OK"
+2025-07-28 23:03:39,593 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:03:39,600 - src.content_processor - INFO - Successfully processed post: many of the anonymous OpenAI models have left lmar...
+2025-07-28 23:03:45,197 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb9g33 "HTTP/2 200 OK"
+2025-07-28 23:03:54,539 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:03:54,541 - src.content_processor - INFO - Successfully processed post: Granite 4 small and medium might be 30B6A/120B30A?...
+2025-07-28 23:04:00,327 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb98cm "HTTP/2 200 OK"
+2025-07-28 23:04:09,605 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:04:09,606 - src.content_processor - INFO - Successfully processed post: Claude Custom Sub Agents are amazing feature and I...
+2025-07-28 23:04:15,206 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb95kp "HTTP/2 200 OK"
+2025-07-28 23:04:28,898 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:04:28,902 - src.content_processor - INFO - Successfully processed post: Built an MCP that enables you to prompt an integra...
+2025-07-28 23:04:34,518 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb83ud "HTTP/2 200 OK"
+2025-07-28 23:04:34,520 - src.content_processor - INFO - Batch completed: {'processed': 10, 'failed': 0, 'skipped': 0}
+2025-07-28 23:04:34,939 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:04:34,941 - src.content_processor - INFO - Processing batch of 10 posts (offset: 10)
+2025-07-28 23:04:44,586 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:04:44,895 - src.content_processor - INFO - Successfully processed post: My learnings after a few months of heavy Claude Co...
+2025-07-28 23:04:50,497 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb80e6 "HTTP/2 200 OK"
+2025-07-28 23:04:59,719 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:04:59,721 - src.content_processor - INFO - Successfully processed post: Watch Alibaba Cloud Founder on China’s AI Future...
+2025-07-28 23:05:05,312 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb7tb7 "HTTP/2 200 OK"
+2025-07-28 23:05:19,766 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:05:19,768 - src.content_processor - INFO - Successfully processed post: Now that there is a full blown international AI ar...
+2025-07-28 23:05:29,943 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb7otx "HTTP/2 200 OK"
+2025-07-28 23:05:39,160 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:05:39,163 - src.content_processor - INFO - Successfully processed post: I have finally accepted it...
+2025-07-28 23:05:45,630 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb7ks4 "HTTP/2 200 OK"
+2025-07-28 23:06:23,235 - openai._base_client - INFO - Retrying request to /chat/completions in 0.448005 seconds
+2025-07-28 23:06:35,584 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:06:35,586 - src.content_processor - INFO - Successfully processed post: 2x RTX 3090 24GB or 8x 3060 12GB...
+2025-07-28 23:06:41,016 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb77c7 "HTTP/2 200 OK"
+2025-07-28 23:06:50,378 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:06:50,382 - src.content_processor - INFO - Successfully processed post: Why claude code is better than almost all models....
+2025-07-28 23:06:56,011 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb6uii "HTTP/2 200 OK"
+2025-07-28 23:07:07,391 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:07:07,393 - src.content_processor - INFO - Successfully processed post: Pi AI studio...
+2025-07-28 23:07:13,231 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb6uhm "HTTP/2 200 OK"
+2025-07-28 23:07:22,802 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:07:22,805 - src.content_processor - INFO - Successfully processed post: Hey OpenAI Dev team .. please remove shortcut auto...
+2025-07-28 23:07:28,434 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb67zi "HTTP/2 200 OK"
+2025-07-28 23:07:38,602 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:07:38,603 - src.content_processor - INFO - Successfully processed post: Technical Report of TeleChat2, TeleChat2.5 and T1...
+2025-07-28 23:07:47,205 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb4mex "HTTP/2 200 OK"
+2025-07-28 23:07:59,442 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:07:59,444 - src.content_processor - INFO - Successfully processed post: Bending VS Code into a document-processing AI tool...
+2025-07-28 23:08:07,122 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb4d9y "HTTP/2 200 OK"
+2025-07-28 23:08:07,125 - src.content_processor - INFO - Batch completed: {'processed': 10, 'failed': 0, 'skipped': 0}
+2025-07-28 23:08:07,571 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:08:07,582 - src.content_processor - INFO - Processing batch of 10 posts (offset: 20)
+2025-07-28 23:08:17,111 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:08:17,115 - src.content_processor - INFO - Successfully processed post: UI/UX Benchmark Update 7/27: 50 Models, Humanity, ...
+2025-07-28 23:08:22,587 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb3xi3 "HTTP/2 200 OK"
+2025-07-28 23:08:32,608 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:08:32,610 - src.content_processor - INFO - Successfully processed post: Wondered why in-context learning works so well? Or...
+2025-07-28 23:08:39,230 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb3w2t "HTTP/2 200 OK"
+2025-07-28 23:08:52,268 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:08:52,273 - src.content_processor - INFO - Successfully processed post: Wtf is wrong with gpt 4 and 4.5...
+2025-07-28 23:08:58,217 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb3f7n "HTTP/2 200 OK"
+2025-07-28 23:09:12,644 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:09:12,942 - src.content_processor - INFO - Successfully processed post: I built a complete marketing site using Claude wit...
+2025-07-28 23:09:23,171 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb3a18 "HTTP/2 200 OK"
+2025-07-28 23:09:32,048 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:09:32,051 - src.content_processor - INFO - Successfully processed post: found claude code plugins that actually work...
+2025-07-28 23:09:37,938 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb37uj "HTTP/2 200 OK"
+2025-07-28 23:09:47,834 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:09:47,836 - src.content_processor - INFO - Successfully processed post: Astraeus Σ-9000 — Meta-Agent Orchestration Framewo...
+2025-07-28 23:09:53,871 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb32ty "HTTP/2 200 OK"
+2025-07-28 23:10:03,404 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:10:03,406 - src.content_processor - INFO - Successfully processed post: One of the most useful ways I’ve used ChatGPT’s ne...
+2025-07-28 23:10:10,868 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb30ml "HTTP/2 200 OK"
+2025-07-28 23:10:20,092 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:10:20,096 - src.content_processor - INFO - Successfully processed post: The Untold Revolution in iOS 26: WebGPU Is Coming...
+2025-07-28 23:10:28,933 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb2y1z "HTTP/2 200 OK"
+2025-07-28 23:10:38,251 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:10:38,253 - src.content_processor - INFO - Successfully processed post: Byte-Vision is a privacy-first (Llama.cpp) documen...
+2025-07-28 23:10:44,089 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb2dcp "HTTP/2 200 OK"
+2025-07-28 23:10:58,020 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:10:58,022 - src.content_processor - INFO - Successfully processed post: What are your expectations from GPT-5 advanced voi...
+2025-07-28 23:11:03,622 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb22mc "HTTP/2 200 OK"
+2025-07-28 23:11:03,624 - src.content_processor - INFO - Batch completed: {'processed': 10, 'failed': 0, 'skipped': 0}
+2025-07-28 23:11:04,042 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:11:04,044 - src.content_processor - INFO - Processing batch of 10 posts (offset: 30)
+2025-07-28 23:11:13,737 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:11:13,740 - src.content_processor - INFO - Successfully processed post: What are your expectations from GPT-5 advanced voi...
+2025-07-28 23:11:21,021 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb20pj "HTTP/2 200 OK"
+2025-07-28 23:11:30,584 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:11:30,585 - src.content_processor - INFO - Successfully processed post: UIGEN-X-0727 Runs Locally and Crushes It. Reasonin...
+2025-07-28 23:11:36,217 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb15g2 "HTTP/2 200 OK"
+2025-07-28 23:11:45,528 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:11:45,531 - src.content_processor - INFO - Successfully processed post: Age reversal trials beginning soon. 👀👀👀...
+2025-07-28 23:11:54,772 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb13yt "HTTP/2 200 OK"
+2025-07-28 23:12:04,236 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:12:04,240 - src.content_processor - INFO - Successfully processed post: Is o3 seeming more intelligent?...
+2025-07-28 23:12:09,854 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mb0i3e "HTTP/2 200 OK"
+2025-07-28 23:12:23,534 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:12:23,540 - src.content_processor - INFO - Successfully processed post: What is the worst case scenario for AI companies f...
+2025-07-28 23:12:29,710 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maz9w6 "HTTP/2 200 OK"
+2025-07-28 23:12:41,456 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:12:41,462 - src.content_processor - INFO - Successfully processed post: AI asserting itself....
+2025-07-28 23:12:47,208 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maz3gq "HTTP/2 200 OK"
+2025-07-28 23:13:00,990 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:13:00,993 - src.content_processor - INFO - Successfully processed post: Zenith attempt on minecraft (presumably gpt 5)...
+2025-07-28 23:13:07,115 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maz3ed "HTTP/2 200 OK"
+2025-07-28 23:13:16,824 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:13:16,828 - src.content_processor - INFO - Successfully processed post: Devstral & Magistral as adapters of Mistral...
+2025-07-28 23:13:22,466 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maywaw "HTTP/2 200 OK"
+2025-07-28 23:13:36,801 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:13:36,807 - src.content_processor - INFO - Successfully processed post: Pain Point Research: RAG attribution - does anyone...
+2025-07-28 23:13:42,405 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mayj51 "HTTP/2 200 OK"
+2025-07-28 23:13:51,475 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:13:51,479 - src.content_processor - INFO - Successfully processed post: This image shows you the best model in the world...
+2025-07-28 23:13:57,087 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mayaf9 "HTTP/2 200 OK"
+2025-07-28 23:13:57,089 - src.content_processor - INFO - Batch completed: {'processed': 10, 'failed': 0, 'skipped': 0}
+2025-07-28 23:13:57,503 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:13:57,504 - src.content_processor - INFO - Processing batch of 10 posts (offset: 40)
+2025-07-28 23:14:06,900 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:14:06,904 - src.content_processor - INFO - Successfully processed post: LMArena has updated their evaluation mechanics for...
+2025-07-28 23:14:12,778 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1may8fd "HTTP/2 200 OK"
+2025-07-28 23:14:22,195 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:14:22,196 - src.content_processor - INFO - Successfully processed post: Some more from zenith (presumably gpt 5)...
+2025-07-28 23:14:27,810 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1may2hg "HTTP/2 200 OK"
+2025-07-28 23:14:37,352 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:14:37,354 - src.content_processor - INFO - Successfully processed post: [Sub Agents] 200k tokens, 3 sub agents, and only 3...
+2025-07-28 23:14:42,927 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maxtwc "HTTP/2 200 OK"
+2025-07-28 23:14:52,083 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:14:52,084 - src.content_processor - INFO - Successfully processed post: ChatGPT's mysterious 'Summit' model one-shotting a...
+2025-07-28 23:14:57,844 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maxrpo "HTTP/2 200 OK"
+2025-07-28 23:15:07,294 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:15:07,301 - src.content_processor - INFO - Successfully processed post: Non-Coding Use Cases? Eager to hear from you!...
+2025-07-28 23:15:12,890 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maxhg5 "HTTP/2 200 OK"
+2025-07-28 23:15:21,910 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:15:21,914 - src.content_processor - INFO - Successfully processed post: What happened to the Yi models?...
+2025-07-28 23:15:27,624 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maxfeb "HTTP/2 200 OK"
+2025-07-28 23:15:40,437 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:15:40,440 - src.content_processor - INFO - Successfully processed post: Speculative decoding without a draft model (C#)...
+2025-07-28 23:15:46,993 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1max9qz "HTTP/2 200 OK"
+2025-07-28 23:15:58,842 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:15:58,843 - src.content_processor - INFO - Successfully processed post: Dead internet theory index?...
+2025-07-28 23:16:04,867 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mawsel "HTTP/2 200 OK"
+2025-07-28 23:16:14,225 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:16:14,228 - src.content_processor - INFO - Successfully processed post: Chatgpt agent searches google streetview for a blu...
+2025-07-28 23:16:20,734 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mawkg3 "HTTP/2 200 OK"
+2025-07-28 23:16:33,141 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:16:33,149 - src.content_processor - INFO - Successfully processed post: Beyond Context Limits: Subconscious Threads for Lo...
+2025-07-28 23:16:39,022 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maw5dy "HTTP/2 200 OK"
+2025-07-28 23:16:39,022 - src.content_processor - INFO - Batch completed: {'processed': 10, 'failed': 0, 'skipped': 0}
+2025-07-28 23:16:39,252 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:16:39,263 - src.content_processor - INFO - Processing batch of 10 posts (offset: 50)
+2025-07-28 23:16:50,056 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:16:50,058 - src.content_processor - INFO - Successfully processed post: Anthropic may over take OpenAI in 2025 itself!...
+2025-07-28 23:16:55,640 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maw2f3 "HTTP/2 200 OK"
+2025-07-28 23:17:04,883 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:17:04,952 - src.content_processor - INFO - Successfully processed post: What big feature you wish ChatGPT had?...
+2025-07-28 23:17:10,937 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mavfcj "HTTP/2 200 OK"
+2025-07-28 23:17:23,573 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:17:23,575 - src.content_processor - INFO - Successfully processed post: OpenAI now ranks fifth in overall model usage by O...
+2025-07-28 23:17:30,860 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mauxg6 "HTTP/2 200 OK"
+2025-07-28 23:17:42,309 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:17:42,313 - src.content_processor - INFO - Successfully processed post: Manual Directory Submissions Are Draining Me, Is A...
+2025-07-28 23:17:50,259 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mauwo2 "HTTP/2 200 OK"
+2025-07-28 23:18:02,870 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:18:02,872 - src.content_processor - INFO - Successfully processed post: Claude Code Overloaded...
+2025-07-28 23:18:08,318 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mauuih "HTTP/2 200 OK"
+2025-07-28 23:18:20,628 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:18:20,631 - src.content_processor - INFO - Successfully processed post: Claude Code sub-agents CPU over 100%...
+2025-07-28 23:18:26,311 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mautmb "HTTP/2 200 OK"
+2025-07-28 23:18:36,117 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:18:36,120 - src.content_processor - INFO - Successfully processed post: I've brought a verifiable prompt for IMO 2025( I m...
+2025-07-28 23:18:41,569 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maute6 "HTTP/2 200 OK"
+2025-07-28 23:18:52,307 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:18:52,322 - src.content_processor - INFO - Successfully processed post: New paper introduces a system that autonomously di...
+2025-07-28 23:18:57,941 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maukps "HTTP/2 200 OK"
+2025-07-28 23:19:09,241 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:19:09,245 - src.content_processor - INFO - Successfully processed post: Anyone Actually Using a Good Multi Agent Builder? ...
+2025-07-28 23:19:15,601 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mau9lx "HTTP/2 200 OK"
+2025-07-28 23:19:25,025 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:19:25,027 - src.content_processor - INFO - Successfully processed post: Claude Code builds a Go API, creates a new server ...
+2025-07-28 23:19:31,408 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1matqac "HTTP/2 200 OK"
+2025-07-28 23:19:31,414 - src.content_processor - INFO - Batch completed: {'processed': 10, 'failed': 0, 'skipped': 0}
+2025-07-28 23:19:31,668 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:19:31,679 - src.content_processor - INFO - Processing batch of 10 posts (offset: 60)
+2025-07-28 23:19:43,974 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:19:43,978 - src.content_processor - INFO - Successfully processed post: LangChain is the perfect example of why the future...
+2025-07-28 23:19:50,000 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1marylj "HTTP/2 200 OK"
+2025-07-28 23:19:59,869 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:19:59,871 - src.content_processor - INFO - Successfully processed post: My wild ride from building a proxy server for LLMs...
+2025-07-28 23:20:05,454 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maqjgw "HTTP/2 200 OK"
+2025-07-28 23:20:16,129 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:20:16,133 - src.content_processor - INFO - Successfully processed post: Is OpenAI in trouble in terms of the quality of it...
+2025-07-28 23:20:21,823 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maqebm "HTTP/2 200 OK"
+2025-07-28 23:20:34,273 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:20:34,280 - src.content_processor - INFO - Successfully processed post: Why hasn't LoRA gained more popularity?...
+2025-07-28 23:20:39,952 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maq0hg "HTTP/2 200 OK"
+2025-07-28 23:20:50,292 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:20:50,296 - src.content_processor - INFO - Successfully processed post: Drummer's Mixtral 4x3B v1 - A finetuned clown MoE ...
+2025-07-28 23:21:00,431 - src.content_processor - ERROR - Error in batch processing for post 1maptvc: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1006)
+2025-07-28 23:21:09,967 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:21:09,969 - src.content_processor - INFO - Successfully processed post: What problem do some people face that you think th...
+2025-07-28 23:21:15,488 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mapn4k "HTTP/2 200 OK"
+2025-07-28 23:21:27,851 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:21:27,855 - src.content_processor - INFO - Successfully processed post: You probably don't actually NEED the 20x max plan....
+2025-07-28 23:21:33,670 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1map4xi "HTTP/2 200 OK"
+2025-07-28 23:21:43,084 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:21:43,087 - src.content_processor - INFO - Successfully processed post: I went through leaked Claude Code prompt (here's h...
+2025-07-28 23:21:48,960 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1map264 "HTTP/2 200 OK"
+2025-07-28 23:21:59,309 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:21:59,311 - src.content_processor - INFO - Successfully processed post: Running LLMs exclusively on AMD Ryzen AI NPU...
+2025-07-28 23:22:08,011 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mao95d "HTTP/2 200 OK"
+2025-07-28 23:22:18,151 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:22:18,154 - src.content_processor - INFO - Successfully processed post: OpenAI coding CLI...
+2025-07-28 23:22:23,627 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1manms0 "HTTP/2 200 OK"
+2025-07-28 23:22:23,629 - src.content_processor - INFO - Batch completed: {'processed': 9, 'failed': 1, 'skipped': 0}
+2025-07-28 23:22:23,846 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:22:23,914 - src.content_processor - INFO - Processing batch of 10 posts (offset: 70)
+2025-07-28 23:22:34,111 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:22:34,114 - src.content_processor - INFO - Successfully processed post: Drummer's Mixtral 4x3B v1 - A finetuned clown MoE ...
+2025-07-28 23:22:42,399 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maptvc "HTTP/2 200 OK"
+2025-07-28 23:22:52,352 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:22:52,354 - src.content_processor - INFO - Successfully processed post: Qwen GSPO (Group Sequence Policy Optimization)...
+2025-07-28 23:23:02,493 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1man0hu "HTTP/2 200 OK"
+2025-07-28 23:23:13,875 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:23:13,877 - src.content_processor - INFO - Successfully processed post: Qwen3-235B-A22B 2507 is so good...
+2025-07-28 23:23:20,015 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mammv5 "HTTP/2 200 OK"
+2025-07-28 23:23:31,807 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:23:31,809 - src.content_processor - INFO - Successfully processed post: Most people still underestimate what's coming: AI ...
+2025-07-28 23:23:37,407 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mamk7u "HTTP/2 200 OK"
+2025-07-28 23:23:46,892 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:23:46,895 - src.content_processor - INFO - Successfully processed post: Why is Opus 4 so much more expensive than other, s...
+2025-07-28 23:23:52,485 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mam4nr "HTTP/2 200 OK"
+2025-07-28 23:24:01,984 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:24:01,987 - src.content_processor - INFO - Successfully processed post: Doge reportedly using AI tool to create ‘delete li...
+2025-07-28 23:24:07,686 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mal376 "HTTP/2 200 OK"
+2025-07-28 23:24:17,363 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:24:17,365 - src.content_processor - INFO - Successfully processed post: Compromised Amazon Q extension told AI to delete e...
+2025-07-28 23:24:22,825 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1makvlr "HTTP/2 200 OK"
+2025-07-28 23:24:32,916 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:24:32,918 - src.content_processor - INFO - Successfully processed post: Best free AI Chat...
+2025-07-28 23:24:42,995 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1makvb8 "HTTP/2 200 OK"
+2025-07-28 23:24:52,734 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:24:52,739 - src.content_processor - INFO - Successfully processed post: I created a generally simple workflow(no super com...
+2025-07-28 23:24:58,391 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1makunv "HTTP/2 200 OK"
+2025-07-28 23:25:07,649 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:25:07,649 - src.content_processor - INFO - Successfully processed post: Vibe Coders be like...
+2025-07-28 23:25:13,643 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1majzf6 "HTTP/2 200 OK"
+2025-07-28 23:25:13,648 - src.content_processor - INFO - Batch completed: {'processed': 10, 'failed': 0, 'skipped': 0}
+2025-07-28 23:25:14,075 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:25:14,077 - src.content_processor - INFO - Processing batch of 10 posts (offset: 80)
+2025-07-28 23:25:28,000 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:25:28,003 - src.content_processor - INFO - Successfully processed post: Are ~70B Models Going Out of Fashion?...
+2025-07-28 23:25:33,620 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1majfwi "HTTP/2 200 OK"
+2025-07-28 23:25:42,861 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:25:42,862 - src.content_processor - INFO - Successfully processed post: Suprise suprise!!...
+2025-07-28 23:25:53,450 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1majemr "HTTP/2 200 OK"
+2025-07-28 23:26:03,345 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:26:03,348 - src.content_processor - INFO - Successfully processed post: What are some good use cases of Agent Mode that yo...
+2025-07-28 23:26:11,769 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1majcf4 "HTTP/2 200 OK"
+2025-07-28 23:26:21,072 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:26:21,074 - src.content_processor - INFO - Successfully processed post: A new 21B-A3B model that can run 30 token/s on i9 ...
+2025-07-28 23:26:26,681 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maipzo "HTTP/2 200 OK"
+2025-07-28 23:26:36,212 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:26:36,518 - src.content_processor - INFO - Successfully processed post: A partner at a prominent law firm told me “AI is n...
+2025-07-28 23:26:43,710 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maibh6 "HTTP/2 200 OK"
+2025-07-28 23:26:56,329 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:26:56,331 - src.content_processor - INFO - Successfully processed post: AlphaGo moment for self-improving AI: "The paper s...
+2025-07-28 23:27:06,338 - src.content_processor - ERROR - Error in batch processing for post 1mai55x: [Errno 54] Connection reset by peer
+2025-07-28 23:27:18,696 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:27:18,701 - src.content_processor - INFO - Successfully processed post: Prompt Engineering Debugging: The 10 Most Common I...
+2025-07-28 23:27:24,636 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mai2a1 "HTTP/2 200 OK"
+2025-07-28 23:27:38,054 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:27:38,058 - src.content_processor - INFO - Successfully processed post: A cautionary tale as old as time...
+2025-07-28 23:27:47,262 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maht6f "HTTP/2 200 OK"
+2025-07-28 23:27:56,670 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:27:56,673 - src.content_processor - INFO - Successfully processed post: A cautionary tale as old as time...
+2025-07-28 23:28:06,491 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mahsx4 "HTTP/2 200 OK"
+2025-07-28 23:28:15,633 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:28:15,636 - src.content_processor - INFO - Successfully processed post: what are the best tutorials for building advanced ...
+2025-07-28 23:28:21,087 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mafx69 "HTTP/2 200 OK"
+2025-07-28 23:28:21,088 - src.content_processor - INFO - Batch completed: {'processed': 9, 'failed': 1, 'skipped': 0}
+2025-07-28 23:28:21,469 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=%2A&content_processed_at=is.null&order=created_utc.desc&limit=10 "HTTP/2 200 OK"
+2025-07-28 23:28:21,479 - src.content_processor - INFO - Processing batch of 10 posts (offset: 90)
+2025-07-28 23:28:31,008 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:28:31,011 - src.content_processor - INFO - Successfully processed post: AlphaGo moment for self-improving AI: "The paper s...
+2025-07-28 23:28:36,624 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mai55x "HTTP/2 200 OK"
+2025-07-28 23:28:46,043 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:28:46,047 - src.content_processor - INFO - Successfully processed post: I feel so bad for agent...
+2025-07-28 23:28:51,465 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mafrzd "HTTP/2 200 OK"
+2025-07-28 23:29:02,427 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:29:02,428 - src.content_processor - INFO - Successfully processed post: I didn't know this was a thing...
+2025-07-28 23:29:08,367 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mafrre "HTTP/2 200 OK"
+2025-07-28 23:29:17,752 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:29:18,059 - src.content_processor - INFO - Successfully processed post: A simple guide to the databases behind AI agents...
+2025-07-28 23:29:23,689 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mafkkp "HTTP/2 200 OK"
+2025-07-28 23:29:35,327 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:29:35,329 - src.content_processor - INFO - Successfully processed post: Imagine calling ChatGPT the worst product…on day o...
+2025-07-28 23:29:40,925 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mafj7l "HTTP/2 200 OK"
+2025-07-28 23:29:50,297 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:29:50,299 - src.content_processor - INFO - Successfully processed post: SYSTEM PROMPT: A multi agent system consisting of ...
+2025-07-28 23:29:55,898 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maf6ap "HTTP/2 200 OK"
+2025-07-28 23:30:07,266 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:30:07,268 - src.content_processor - INFO - Successfully processed post: What makes people actually pay for AI agents. I am...
+2025-07-28 23:30:16,571 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1maf3tu "HTTP/2 200 OK"
+2025-07-28 23:30:30,294 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:30:30,295 - src.content_processor - INFO - Successfully processed post: Tencent releases open-source 3D world generation m...
+2025-07-28 23:30:35,912 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mabpg6 "HTTP/2 200 OK"
+2025-07-28 23:30:45,276 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:30:45,278 - src.content_processor - INFO - Successfully processed post: New AI from Tencent builds entire 3D worlds from j...
+2025-07-28 23:30:51,261 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mab9ob "HTTP/2 200 OK"
+2025-07-28 23:31:00,780 - httpx - INFO - HTTP Request: POST https://api.fireworks.ai/inference/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-28 23:31:00,783 - src.content_processor - INFO - Successfully processed post: Tencent releases Hunyuan3D World Model 1.0 - first...
+2025-07-28 23:31:07,253 - httpx - INFO - HTTP Request: PATCH https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?reddit_id=eq.1mab2i2 "HTTP/2 200 OK"
+2025-07-28 23:31:07,260 - src.content_processor - INFO - Batch completed: {'processed': 10, 'failed': 0, 'skipped': 0}
+2025-07-28 23:31:07,260 - src.content_processor - INFO - Content processing completed. Final stats: {'processed': 98, 'failed': 2, 'skipped': 0}
+2025-07-28 23:31:07,261 - __main__ - INFO - ==================================================
+2025-07-28 23:31:07,261 - __main__ - INFO - CONTENT PROCESSING RESULTS
+2025-07-28 23:31:07,261 - __main__ - INFO - ==================================================
+2025-07-28 23:31:07,262 - __main__ - INFO - Successfully processed: 98 posts
+2025-07-28 23:31:07,262 - __main__ - INFO - Failed to process: 2 posts
+2025-07-28 23:31:07,262 - __main__ - INFO - Skipped (already processed): 0 posts
+2025-07-28 23:31:07,262 - __main__ - INFO - 
+2025-07-28 23:31:07,262 - __main__ - INFO - Getting updated statistics...
+2025-07-28 23:31:07,461 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id "HTTP/2 200 OK"
+2025-07-28 23:31:07,667 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=reddit_id&content_processed_at=not.is.null "HTTP/2 200 OK"
+2025-07-28 23:31:07,872 - httpx - INFO - HTTP Request: GET https://wsxxbpmdzhovbxjjrslv.supabase.co/rest/v1/reddit_posts?select=content_type&content_type=not.is.null "HTTP/2 200 OK"
+2025-07-28 23:31:07,873 - __main__ - INFO - New processing rate: 75.38%
+2025-07-28 23:31:07,873 - __main__ - INFO - Remaining unprocessed: 32 posts
+2025-07-28 23:31:07,874 - __main__ - INFO - ==================================================
+2025-07-28 23:31:07,874 - __main__ - INFO - Content processing completed successfully
+2025-07-28 23:31:07,874 - __main__ - INFO - ==================================================
