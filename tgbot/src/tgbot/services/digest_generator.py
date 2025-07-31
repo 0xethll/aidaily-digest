@@ -8,8 +8,8 @@ from datetime import datetime, timezone, date, timedelta
 from typing import List, Dict, Optional, Any, Tuple
 from dataclasses import dataclass
 
-from database import BotDatabase
-from config import DigestConfig
+from .database import BotDatabase
+from ..models.config import DigestConfig
 
 logger = logging.getLogger(__name__)
 

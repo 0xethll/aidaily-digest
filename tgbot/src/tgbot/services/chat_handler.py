@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional, List
 import openai
 from openai import AsyncOpenAI
 
-from config import LLMConfig
+from ..models.config import LLMConfig
 
 logger = logging.getLogger(__name__)
 

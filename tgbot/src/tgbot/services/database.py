@@ -9,7 +9,7 @@ from typing import List, Dict, Optional, Any, Tuple
 from supabase import Client, create_client
 from postgrest.exceptions import APIError as SupabaseAPIError
 
-from config import SupabaseConfig
+from ..models.config import SupabaseConfig
 
 logger = logging.getLogger(__name__)
 
