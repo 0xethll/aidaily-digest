@@ -39,6 +39,15 @@
 			"can_connect_to_business": false,
 			"has_main_web_app": false
 		}
+	},
+	
+	/**
+	 * Cron Triggers
+	 * Schedule digest generation every 2 hours
+	 * https://developers.cloudflare.com/workers/configuration/cron-triggers/
+	 */
+	"triggers": {
+		"crons": ["0 */2 * * *"]
 	}
 	/**
 	 * Note: Use secrets to store sensitive data.
