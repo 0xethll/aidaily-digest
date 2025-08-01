@@ -16,6 +16,7 @@ export interface Env {
 	SUPABASE_KEY: string;
 	FIREWORKS_API_KEY: string;
 	TELEGRAM_ADMIN_CHAT_IDS?: string;
+	FIREWORKS_MODEL: string;
 }
 
 type MyContext = Context & { conversation: any };
@@ -90,7 +91,7 @@ export default {
 		// Initialize services
 		const db = new DatabaseService(env.SUPABASE_URL, env.SUPABASE_KEY);
 		const digestGenerator = new DigestGenerator(db);
-		const chatHandler = new ChatHandler(fireworks, db);
+		const chatHandler = new ChatHandler(fireworks, db, env.FIREWORKS_MODEL);
 
 		// Commands
 		bot.command('start', async (ctx) => {

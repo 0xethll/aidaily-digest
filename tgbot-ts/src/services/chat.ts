@@ -10,10 +10,12 @@ export class ChatHandler {
 	private fireworks: OpenAI;
 	private db: DatabaseService;
 	private maxContextLength: number = 20;
+	private model: string;
 
-	constructor(fireworks: OpenAI, db: DatabaseService) {
+	constructor(fireworks: OpenAI, db: DatabaseService, model: string) {
 		this.fireworks = fireworks;
 		this.db = db;
+		this.model = model;
 	}
 
 	// Handle user message and generate AI response
@@ -60,7 +62,7 @@ export class ChatHandler {
 
 		try {
 			const completion = await this.fireworks.chat.completions.create({
-				model: 'accounts/fireworks/models/llama-v3p1-8b-instruct',
+				model: this.model,
 				messages: messages as any,
 				max_tokens: 1000,
 				temperature: 0.7,
@@ -189,7 +191,7 @@ Content: ${postContent.substring(0, 1000)}
 Provide a clear, informative summary that highlights what's important for someone following AI news.`;
 
 			const completion = await this.fireworks.chat.completions.create({
-				model: 'accounts/fireworks/models/llama-v3p1-8b-instruct',
+				model: this.model,
 				messages: [{ role: 'user', content: prompt }],
 				max_tokens: 150,
 				temperature: 0.3,
@@ -227,7 +229,7 @@ Content: ${postContent.substring(0, 500)}
 Return only the category name that best fits this post.`;
 
 			const completion = await this.fireworks.chat.completions.create({
-				model: 'accounts/fireworks/models/llama-v3p1-8b-instruct',
+				model: this.model,
 				messages: [{ role: 'user', content: prompt }],
 				max_tokens: 20,
 				temperature: 0.1,
