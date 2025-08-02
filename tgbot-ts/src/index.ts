@@ -115,8 +115,8 @@ export default {
 				`🤖 **Welcome to AI Daily Digest Bot!**\n\n` +
 				`I can help you with:\n` +
 				`📰 /digest - Get the latest AI news digest\n` +
-				`💬 /chat - Start a conversation about AI\n` +
-				`⚙️ /settings - Configure your preferences\n` +
+				// `💬 /chat - Start a conversation about AI\n` +
+				// `⚙️ /settings - Configure your preferences\n` +
 				`❓ /help - Get help and commands\n\n` +
 				`Just send me a message to start chatting about AI topics!`;
 
