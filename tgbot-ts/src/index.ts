@@ -128,9 +128,9 @@ export default {
 				`🔧 **Available Commands:**\n\n` +
 				`/start - Welcome message and introduction\n` +
 				`/digest - Get today's AI news digest\n` +
-				`/chat - Start AI conversation mode\n` +
-				`/settings - Configure your preferences\n` +
-				`/clear - Clear conversation history\n` +
+				// `/chat - Start AI conversation mode\n` +
+				// `/settings - Configure your preferences\n` +
+				// `/clear - Clear conversation history\n` +
 				`/help - Show this help message\n\n` +
 				`**Usage Tips:**\n` +
 				`• Send any message to chat with AI\n` +
