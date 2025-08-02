@@ -21,8 +21,21 @@ export interface Env {
 
 type MyContext = Context & { conversation: any };
 
+function validateEnvironment(env: Env): void {
+	const requiredVars = ['BOT_TOKEN', 'SUPABASE_URL', 'SUPABASE_KEY', 'FIREWORKS_API_KEY', 'FIREWORKS_MODEL'];
+
+	const missing = requiredVars.filter((varName) => !env[varName as keyof Env]);
+
+	if (missing.length > 0) {
+		throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+	}
+}
+
 async function handleScheduled(env: Env): Promise<void> {
 	try {
+		// Validate environment variables
+		validateEnvironment(env);
+
 		console.log('Running scheduled digest generation...');
 
 		// Initialize services
@@ -35,8 +48,8 @@ async function handleScheduled(env: Env): Promise<void> {
 		const db = new DatabaseService(env.SUPABASE_URL, env.SUPABASE_KEY);
 		const digestGenerator = new DigestGenerator(db);
 
-		// Generate and save today's digest
-		const digest = await digestGenerator.generateDigest(1);
+		// Generate today's digest
+		const digest = await digestGenerator.generateDigest();
 
 		// Optional: Send digest to admin users
 		if (env.TELEGRAM_ADMIN_CHAT_IDS) {
@@ -62,6 +75,9 @@ async function handleScheduled(env: Env): Promise<void> {
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+		// Validate environment variables
+		validateEnvironment(env);
+
 		// Initialize bot with conversation support
 		const bot = new Bot<ConversationFlavor<Context>>(env.BOT_TOKEN, { botInfo: env.BOT_INFO });
 
@@ -75,15 +91,15 @@ export default {
 		});
 
 		// Rate limiting middleware
-		bot.use(
-			limit({
-				timeFrame: 60000, // 1 minute
-				limit: 10,
-				onLimitExceeded: async (ctx) => {
-					await ctx.reply("⚠️ You're sending messages too quickly. Please wait before sending another message.");
-				},
-			})
-		);
+		// bot.use(
+		// 	limit({
+		// 		timeFrame: 60000, // 1 minute
+		// 		limit: 10,
+		// 		onLimitExceeded: async (ctx) => {
+		// 			await ctx.reply("⚠️ You're sending messages too quickly. Please wait before sending another message.");
+		// 		},
+		// 	})
+		// );
 
 		// Install conversation plugin
 		bot.use(conversations());
@@ -119,7 +135,8 @@ export default {
 				`**Usage Tips:**\n` +
 				`• Send any message to chat with AI\n` +
 				`• Rate limit: 10 messages per minute\n` +
-				`• Daily digest updated every 2 hours`;
+				`• Daily digest: Top 5 posts from 24-48 hours ago\n` +
+				`• Generated daily at 9 AM`;
 
 			await ctx.reply(helpMessage, { parse_mode: 'Markdown' });
 		});

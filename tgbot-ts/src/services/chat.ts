@@ -6,6 +6,12 @@ export interface ChatMessage {
 	content: string;
 }
 
+// OpenAI compatible message type
+interface OpenAIChatMessage {
+	role: 'user' | 'assistant' | 'system';
+	content: string;
+}
+
 export class ChatHandler {
 	private fireworks: OpenAI;
 	private db: DatabaseService;
@@ -55,7 +61,7 @@ export class ChatHandler {
 	// Generate AI response using Fireworks AI
 	private async generateResponse(context: ChatMessage[], userName: string): Promise<string> {
 		const systemPrompt = this.getSystemPrompt(userName);
-		const messages: ChatMessage[] = [
+		const messages: OpenAIChatMessage[] = [
 			{ role: 'system', content: systemPrompt },
 			...context.slice(-15), // Keep last 15 messages for context
 		];
@@ -63,7 +69,7 @@ export class ChatHandler {
 		try {
 			const completion = await this.fireworks.chat.completions.create({
 				model: this.model,
-				messages: messages as any,
+				messages: messages,
 				max_tokens: 1000,
 				temperature: 0.7,
 				top_p: 0.9,

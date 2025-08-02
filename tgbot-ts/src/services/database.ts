@@ -2,38 +2,57 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ChatMessage } from './chat';
 
 export interface RedditPost {
-	id: string;
+	reddit_id: string;
+	subreddit_name: string;
 	title: string;
 	content: string;
 	url: string;
 	score: number;
-	subreddit: string;
-	author: string;
-	created_utc: number;
-	upvote_ratio: number;
 	num_comments: number;
+	upvote_ratio: number;
+	author: string;
+	created_utc: string; // Changed to string to match TIMESTAMP WITH TIME ZONE
+	is_stickied: boolean;
+	is_nsfw: boolean;
+	is_self: boolean;
+	permalink: string;
+	thumbnail: string;
 	summary?: string;
-	category?: string;
-	sentiment?: number;
+	summary_generated_at?: string;
+	content_type?: string;
 	keywords?: string[];
+	content_processed_at?: string;
+	processing_status: string;
+	url_fetch_attempts: number;
 	fetched_at: string;
+	created_at: string;
+	updated_at: string;
 }
 
 export interface DailyDigest {
-	id: number;
-	digest_date: string;
-	content: string;
-	total_posts: number;
-	categories: string[];
+	id: string; // UUID in the schema
+	date: string; // Changed from digest_date to date
+	post_count: number; // Changed from total_posts to post_count
+	summary: string; // Changed from content to summary
+	status: string;
+	telegram_message_id?: number;
 	created_at: string;
+	updated_at: string;
 }
 
 export interface DigestPost {
-	id: number;
-	digest_id: number;
-	post_id: string;
-	category: string;
-	position: number;
+	digest_id: string; // UUID
+	post_reddit_id: string; // Changed from post_id to post_reddit_id
+}
+
+export interface Subreddit {
+	name: string;
+	display_name: string;
+	description?: string;
+	subscribers?: number;
+	active_users?: number;
+	created_at: string;
+	updated_at: string;
 }
 
 export class DatabaseService {
@@ -43,7 +62,35 @@ export class DatabaseService {
 		this.supabase = createClient(url, key);
 	}
 
-	// Get recent posts for digest generation
+	// Get posts from 24-48 hours ago for daily digest
+	async getPostsForDailyDigest(limit: number = 5, minSummaryLength: number = 50): Promise<RedditPost[]> {
+		const now = new Date();
+		const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+		const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+		const { data, error } = await this.supabase
+			.from('reddit_posts')
+			.select('*')
+			.gte('created_utc', fortyEightHoursAgo.toISOString())
+			.lte('created_utc', twentyFourHoursAgo.toISOString())
+			.not('summary', 'is', null)
+			.order('score', { ascending: false })
+			.limit(limit * 3); // Get more posts to filter from
+
+		if (error) {
+			throw new Error(`Database error: ${error.message}`);
+		}
+
+		// Additional client-side filtering to ensure summary length
+		const filteredPosts = (data || []).filter(post => 
+			post.summary && 
+			post.summary.trim().length >= minSummaryLength
+		);
+
+		return filteredPosts.slice(0, limit);
+	}
+
+	// Get recent posts for digest generation (kept for backward compatibility)
 	async getRecentPosts(daysBack: number = 1, limit: number = 100): Promise<RedditPost[]> {
 		// Validate and clamp input parameters
 		const safeDaysBack = Math.max(1, Math.min(30, daysBack));
@@ -55,7 +102,7 @@ export class DatabaseService {
 		const { data, error } = await this.supabase
 			.from('reddit_posts')
 			.select('*')
-			.gte('created_utc', Math.floor(cutoffDate.getTime() / 1000))
+			.gte('created_utc', cutoffDate.toISOString())
 			.order('score', { ascending: false })
 			.limit(safeLimit);
 
@@ -72,7 +119,7 @@ export class DatabaseService {
 		const categorized: Record<string, RedditPost[]> = {};
 
 		for (const post of posts) {
-			const category = post.category || 'General';
+			const category = post.content_type || 'General';
 			if (!categorized[category]) {
 				categorized[category] = [];
 			}
@@ -83,14 +130,14 @@ export class DatabaseService {
 	}
 
 	// Save daily digest
-	async saveDailyDigest(digestDate: string, content: string, totalPosts: number, categories: string[]): Promise<DailyDigest> {
+	async saveDailyDigest(digestDate: string, summary: string, postCount: number): Promise<DailyDigest> {
 		const { data, error } = await this.supabase
 			.from('daily_digests')
 			.insert({
-				digest_date: digestDate,
-				content,
-				total_posts: totalPosts,
-				categories,
+				date: digestDate,
+				summary,
+				post_count: postCount,
+				status: 'completed',
 			})
 			.select()
 			.single();
@@ -104,12 +151,7 @@ export class DatabaseService {
 
 	// Get latest digest
 	async getLatestDigest(): Promise<DailyDigest | null> {
-		const { data, error } = await this.supabase
-			.from('daily_digests')
-			.select('*')
-			.order('digest_date', { ascending: false })
-			.limit(1)
-			.single();
+		const { data, error } = await this.supabase.from('daily_digests').select('*').order('date', { ascending: false }).limit(1).single();
 
 		if (error && error.code !== 'PGRST116') {
 			// PGRST116 = no rows returned
@@ -121,7 +163,8 @@ export class DatabaseService {
 
 	// Get digest by date
 	async getDigestByDate(date: string): Promise<DailyDigest | null> {
-		const { data, error } = await this.supabase.from('daily_digests').select('*').eq('digest_date', date).single();
+		console.log(date);
+		const { data, error } = await this.supabase.from('daily_digests').select('*').eq('date', date).single();
 
 		if (error && error.code !== 'PGRST116') {
 			throw new Error(`Failed to get digest: ${error.message}`);
@@ -156,8 +199,30 @@ export class DatabaseService {
 		}
 
 		try {
-			return JSON.parse(data.context);
-		} catch {
+			const parsed = JSON.parse(data.context);
+			// Validate that parsed data is an array with expected structure
+			if (!Array.isArray(parsed)) {
+				console.warn(`Invalid conversation context format for user ${userId}: not an array`);
+				return [];
+			}
+
+			// Validate each message has required properties
+			const isValidContext = parsed.every(
+				(msg) => msg && typeof msg === 'object' && typeof msg.role === 'string' && typeof msg.content === 'string'
+			);
+
+			if (!isValidContext) {
+				console.warn(`Invalid conversation context format for user ${userId}: invalid message structure`);
+				return [];
+			}
+
+			return parsed;
+		} catch (parseError) {
+			console.error(`Failed to parse conversation context for user ${userId}:`, parseError);
+			// Clear corrupted data
+			await this.clearConversationContext(userId).catch((clearError) => {
+				console.error(`Failed to clear corrupted context for user ${userId}:`, clearError);
+			});
 			return [];
 		}
 	}
@@ -191,5 +256,65 @@ export class DatabaseService {
 		if (error) {
 			console.error(`Failed to log security event: ${error.message}`);
 		}
+	}
+
+	// Get posts by processing status
+	async getPostsByProcessingStatus(status: string, limit: number = 50): Promise<RedditPost[]> {
+		const { data, error } = await this.supabase
+			.from('reddit_posts')
+			.select('*')
+			.eq('processing_status', status)
+			.order('created_utc', { ascending: false })
+			.limit(limit);
+
+		if (error) {
+			throw new Error(`Failed to get posts by status: ${error.message}`);
+		}
+
+		return data || [];
+	}
+
+	// Update post processing status
+	async updatePostProcessingStatus(redditId: string, status: string, summary?: string): Promise<void> {
+		const updateData: any = {
+			processing_status: status,
+			content_processed_at: new Date().toISOString(),
+		};
+
+		if (summary) {
+			updateData.summary = summary;
+			updateData.summary_generated_at = new Date().toISOString();
+		}
+
+		const { error } = await this.supabase.from('reddit_posts').update(updateData).eq('reddit_id', redditId);
+
+		if (error) {
+			throw new Error(`Failed to update post status: ${error.message}`);
+		}
+	}
+
+	// Add posts to digest
+	async addPostsToDigest(digestId: string, postRedditIds: string[]): Promise<void> {
+		const digestPosts = postRedditIds.map((postId) => ({
+			digest_id: digestId,
+			post_reddit_id: postId,
+		}));
+
+		const { error } = await this.supabase.from('digest_posts').insert(digestPosts);
+
+		if (error) {
+			throw new Error(`Failed to add posts to digest: ${error.message}`);
+		}
+	}
+
+	// Get subreddits
+	async getSubreddits(): Promise<Subreddit[]> {
+		const { data, error } = await this.supabase.from('subreddits').select('*').order('name');
+
+		if (error) {
+			throw new Error(`Failed to get subreddits: ${error.message}`);
+		}
+
+		return data || [];
 	}
 }

@@ -1,12 +1,5 @@
 -- Additional tables needed for the Telegram bot functionality
 
--- Rate limiting table
-CREATE TABLE IF NOT EXISTS rate_limits (
-    key TEXT PRIMARY KEY,
-    data JSONB NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
 -- User conversations table for storing chat context
 CREATE TABLE IF NOT EXISTS user_conversations (
@@ -25,7 +18,6 @@ CREATE TABLE IF NOT EXISTS security_logs (
 );
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_rate_limits_created_at ON rate_limits(created_at);
 CREATE INDEX IF NOT EXISTS idx_user_conversations_updated_at ON user_conversations(updated_at);
 CREATE INDEX IF NOT EXISTS idx_security_logs_user_id ON security_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_security_logs_event_type ON security_logs(event_type);
@@ -40,9 +32,6 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Apply auto-update triggers
-CREATE TRIGGER update_rate_limits_updated_at BEFORE UPDATE ON rate_limits 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_user_conversations_updated_at BEFORE UPDATE ON user_conversations 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
