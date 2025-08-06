@@ -55,6 +55,22 @@ export interface Subreddit {
 	updated_at: string;
 }
 
+export interface BotUser {
+	user_id: number;
+	username?: string;
+	first_name?: string;
+	last_name?: string;
+	language_code?: string;
+	is_bot: boolean;
+	is_premium?: boolean;
+	status: 'active' | 'blocked' | 'deleted';
+	first_interaction_at: string;
+	last_interaction_at: string;
+	interaction_count: number;
+	created_at: string;
+	updated_at: string;
+}
+
 export class DatabaseService {
 	private supabase: SupabaseClient;
 
@@ -316,5 +332,97 @@ export class DatabaseService {
 		}
 
 		return data || [];
+	}
+
+	// Track user interaction
+	async trackUserInteraction(user: {
+		id: number;
+		username?: string;
+		first_name?: string;
+		last_name?: string;
+		language_code?: string;
+		is_bot: boolean;
+		is_premium?: boolean;
+	}): Promise<void> {
+		const now = new Date().toISOString();
+		
+		const { error } = await this.supabase
+			.from('bot_users')
+			.upsert({
+				user_id: user.id,
+				username: user.username,
+				first_name: user.first_name,
+				last_name: user.last_name,
+				language_code: user.language_code,
+				is_bot: user.is_bot,
+				is_premium: user.is_premium,
+				status: 'active',
+				last_interaction_at: now,
+				updated_at: now
+			}, {
+				onConflict: 'user_id'
+			});
+
+		if (error) {
+			throw new Error(`Failed to track user interaction: ${error.message}`);
+		}
+
+		// Increment interaction count
+		const { error: incrementError } = await this.supabase
+			.rpc('increment_user_interaction', { p_user_id: user.id });
+
+		if (incrementError) {
+			console.error('Failed to increment interaction count:', incrementError);
+		}
+	}
+
+	// Mark user as blocked
+	async markUserBlocked(userId: number): Promise<void> {
+		const { error } = await this.supabase
+			.from('bot_users')
+			.update({
+				status: 'blocked',
+				updated_at: new Date().toISOString()
+			})
+			.eq('user_id', userId);
+
+		if (error) {
+			throw new Error(`Failed to mark user blocked: ${error.message}`);
+		}
+	}
+
+	// Get all active user IDs for broadcast
+	async getAllUserIds(): Promise<number[]> {
+		const { data, error } = await this.supabase
+			.from('bot_users')
+			.select('user_id')
+			.eq('status', 'active')
+			.order('last_interaction_at', { ascending: false });
+
+		if (error) {
+			throw new Error(`Failed to get users: ${error.message}`);
+		}
+
+		return (data || []).map(row => row.user_id);
+	}
+
+	// Get user statistics
+	async getUserStats(): Promise<{ total: number; active: number; blocked: number }> {
+		const { data, error } = await this.supabase
+			.from('bot_users')
+			.select('status')
+			.not('status', 'eq', 'deleted');
+
+		if (error) {
+			throw new Error(`Failed to get user stats: ${error.message}`);
+		}
+
+		const stats = (data || []).reduce((acc, row) => {
+			acc.total++;
+			acc[row.status as 'active' | 'blocked']++;
+			return acc;
+		}, { total: 0, active: 0, blocked: 0 });
+
+		return stats;
 	}
 }

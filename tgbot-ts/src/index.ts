@@ -31,48 +31,6 @@ function validateEnvironment(env: Env): void {
 	}
 }
 
-async function handleScheduled(env: Env): Promise<void> {
-	try {
-		// Validate environment variables
-		validateEnvironment(env);
-
-		console.log('Running scheduled digest generation...');
-
-		// Initialize services
-		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
-		const fireworks = new OpenAI({
-			apiKey: env.FIREWORKS_API_KEY,
-			baseURL: 'https://api.fireworks.ai/inference/v1',
-		});
-
-		const db = new DatabaseService(env.SUPABASE_URL, env.SUPABASE_KEY);
-		const digestGenerator = new DigestGenerator(db);
-
-		// Generate today's digest
-		const digest = await digestGenerator.generateDigest();
-
-		// Optional: Send digest to admin users
-		if (env.TELEGRAM_ADMIN_CHAT_IDS) {
-			const bot = new Bot(env.BOT_TOKEN, { botInfo: env.BOT_INFO });
-			const adminIds = env.TELEGRAM_ADMIN_CHAT_IDS.split(',').map((id) => parseInt(id.trim()));
-
-			for (const adminId of adminIds) {
-				try {
-					await bot.api.sendMessage(adminId, `📅 **Scheduled Digest Generated**\n\n${digest}`, {
-						parse_mode: 'Markdown',
-					});
-				} catch (error) {
-					console.error(`Failed to send digest to admin ${adminId}:`, error);
-				}
-			}
-		}
-
-		console.log('Scheduled digest generation completed');
-	} catch (error) {
-		console.error('Scheduled digest generation failed:', error);
-	}
-}
-
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		// Validate environment variables
@@ -101,13 +59,25 @@ export default {
 		// 	})
 		// );
 
-		// Install conversation plugin
-		bot.use(conversations());
-
 		// Initialize services
 		const db = new DatabaseService(env.SUPABASE_URL, env.SUPABASE_KEY);
 		const digestGenerator = new DigestGenerator(db);
 		const chatHandler = new ChatHandler(fireworks, db, env.FIREWORKS_MODEL);
+
+		// Install conversation plugin
+		bot.use(conversations());
+
+		// User tracking middleware
+		bot.use(async (ctx, next) => {
+			if (ctx.from && !ctx.from.is_bot) {
+				try {
+					await db.trackUserInteraction(ctx.from);
+				} catch (error) {
+					console.error('Failed to track user interaction:', error);
+				}
+			}
+			await next();
+		});
 
 		// Commands
 		bot.command('start', async (ctx) => {
@@ -236,8 +206,66 @@ export default {
 		return webhookCallback(bot, 'cloudflare-mod')(request);
 	},
 
-	async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-		// Handle scheduled events (cron triggers)
-		ctx.waitUntil(handleScheduled(env));
+	async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+		console.log('Scheduled digest triggered at:', new Date().toISOString());
+		
+		try {
+			// Validate environment variables
+			validateEnvironment(env);
+
+			// Initialize bot
+			const bot = new Bot(env.BOT_TOKEN, { botInfo: env.BOT_INFO });
+
+			// Initialize services
+			const db = new DatabaseService(env.SUPABASE_URL, env.SUPABASE_KEY);
+			const digestGenerator = new DigestGenerator(db);
+
+			// Get all users
+			const userIds = await db.getAllUserIds();
+			console.log(`Found ${userIds.length} users for scheduled digest`);
+			
+			if (userIds.length === 0) {
+				console.log('No users found for digest broadcast');
+				return;
+			}
+
+			// Generate digest
+			const digest = await digestGenerator.getTodaysDigest();
+			
+			// Send to all users with error handling
+			let successCount = 0;
+			let errorCount = 0;
+			
+			for (const userId of userIds) {
+				try {
+					await bot.api.sendMessage(userId, digest, { parse_mode: 'Markdown' });
+					successCount++;
+					// Add small delay to avoid rate limits
+					await new Promise(resolve => setTimeout(resolve, 100));
+				} catch (error: any) {
+					console.error(`Failed to send digest to user ${userId}:`, error);
+					
+					// Handle bot blocked by user
+					if (error?.error_code === 403 && 
+						(error?.description?.includes('bot was blocked') || 
+						 error?.description?.includes('user is deactivated') ||
+						 error?.description?.includes('chat not found'))) {
+						try {
+							await db.markUserBlocked(userId);
+							console.log(`Marked user ${userId} as blocked/deleted`);
+						} catch (dbError) {
+							console.error(`Failed to mark user ${userId} as blocked:`, dbError);
+						}
+					}
+					
+					errorCount++;
+				}
+			}
+			
+			console.log(`Scheduled digest completed: ${successCount} sent, ${errorCount} failed`);
+			
+		} catch (error) {
+			console.error('Scheduled digest error:', error);
+		}
 	},
 } satisfies ExportedHandler<Env>;

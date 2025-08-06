@@ -42,3 +42,45 @@ Think carefully about how to make the daily pushed content organized and interes
 2. Processing Fetched Content: What are the best practices for handling and processing the fetched content to maintain quality and relevance?
 
 3. Enhancing Content Appeal: How can I make the content more engaging and attractive to users to increase their interest and interaction?
+
+Here it is the reddit_posts table schema:
+
+```
+CREATE TABLE reddit_posts (
+    reddit_id VARCHAR(20) PRIMARY KEY,
+    subreddit_name VARCHAR(100) REFERENCES subreddits(name) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT,
+    url TEXT,
+    score INTEGER DEFAULT 0,
+    num_comments INTEGER DEFAULT 0,
+    upvote_ratio DECIMAL(3,2),
+    author VARCHAR(100),
+    created_utc TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_stickied BOOLEAN DEFAULT FALSE,
+    is_nsfw BOOLEAN DEFAULT FALSE,
+    is_self BOOLEAN DEFAULT FALSE,
+    permalink TEXT,
+    thumbnail TEXT,
+
+    -- AI processing fields
+    summary TEXT,
+    summary_generated_at TIMESTAMP WITH TIME ZONE,
+    content_type VARCHAR(50), -- news, discussion, tutorial, question, tool, research, etc.
+    keywords TEXT[], -- array of extracted keywords
+    content_processed_at TIMESTAMP WITH TIME ZONE,
+    processing_status VARCHAR(20) DEFAULT 'pending', -- pending, processed, url_fetch_failed, processing_failed
+    url_fetch_attempts INTEGER DEFAULT 0,
+
+    -- Metadata
+    fetched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+I think there is no need to generateDigest. You can push the top five posts daily not every 2 hours. But there are some points need to be considered.
+
+1. What time of day to push the daily digest?
+2. Is it more reasonable to push yesterday's posts today? But yesterday's posts were posted late and the scores may not be high.
+3. Except the daily post, is it worth checking the database for high-scoring news every two hours and then pushing it to users?

@@ -141,6 +141,8 @@ We need to tell Telegram where to send updates to. Open your browser and visit t
 
 ```
 https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://<MY_BOT>.<MY_SUBDOMAIN>.workers.dev/
+
+https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://tgbot-ts.aidailydigesttgbot.workers.dev/
 ```
 
 For local development:
@@ -153,4 +155,10 @@ https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://aidailydigest.mon
 
 ```
 https://api.telegram.org/bot<BOT_TOKEN>/deleteWebhook
+```
+
+## Deploy to Cloudflare
+
+```
+pnpm run deploy
 ```

@@ -43,11 +43,11 @@
 	
 	/**
 	 * Cron Triggers
-	 * Schedule digest generation every 2 hours
+	 * Schedule daily digest at 1:00 UTC
 	 * https://developers.cloudflare.com/workers/configuration/cron-triggers/
 	 */
 	"triggers": {
-		"crons": ["0 */2 * * *"]
+		"crons": ["0 1 * * *"]
 	}
 	/**
 	 * Note: Use secrets to store sensitive data.

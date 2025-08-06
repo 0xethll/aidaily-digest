@@ -51,3 +51,42 @@ BEGIN
     DELETE FROM security_logs WHERE timestamp < NOW() - INTERVAL '30 days';
 END;
 $$ LANGUAGE plpgsql;
+
+-- Create bot_users table
+CREATE TABLE bot_users (
+    user_id BIGINT PRIMARY KEY,
+    username TEXT,
+    first_name TEXT,
+    last_name TEXT,
+    language_code TEXT,
+    is_bot BOOLEAN NOT NULL DEFAULT FALSE,
+    is_premium BOOLEAN,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'blocked', 'deleted')),
+    first_interaction_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_interaction_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    interaction_count INTEGER DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create function to increment interaction count
+CREATE OR REPLACE FUNCTION increment_user_interaction(p_user_id BIGINT)
+RETURNS void AS $$
+BEGIN
+    UPDATE bot_users
+    SET interaction_count = interaction_count + 1,
+        updated_at = NOW()
+    WHERE user_id = p_user_id;
+
+    -- If user doesn't exist yet, create with count 1
+    IF NOT FOUND THEN
+        INSERT INTO bot_users (user_id, first_interaction_at, last_interaction_at, interaction_count)
+        VALUES (p_user_id, NOW(), NOW(), 1)
+        ON CONFLICT (user_id) DO NOTHING;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create index for performance
+CREATE INDEX idx_bot_users_status ON bot_users(status);
+CREATE INDEX idx_bot_users_last_interaction ON bot_users(last_interaction_at);
