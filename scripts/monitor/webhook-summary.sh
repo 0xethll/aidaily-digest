@@ -20,20 +20,21 @@ TOTAL_FETCHED=$(journalctl -u reddit-fetcher.service --since "24 hours ago" | gr
 TOTAL_PROCESSED=$(journalctl -u content-processor.service --since "24 hours ago" | grep -o "processed: [0-9]*" | awk -F': ' '{sum+=$2} END {print sum+0}')
 ERROR_COUNT=$(journalctl -u reddit-fetcher.service -u content-processor.service --since "24 hours ago" -p err | wc -l)
 
-# Create message
-MESSAGE="📊 **AI Daily Digest Report** - $DATE
+# Get service status
+FETCHER_STATUS=$(systemctl is-active reddit-fetcher.timer)
+PROCESSOR_STATUS=$(systemctl is-active content-processor.timer)
 
-**📈 24-Hour Summary:**
-• Reddit posts fetched: $TOTAL_FETCHED
-• Posts processed: $TOTAL_PROCESSED  
-• Errors: $ERROR_COUNT
-
-**⚡ Services:** $(systemctl is-active reddit-fetcher.timer) | $(systemctl is-active content-processor.timer)
-**🖥️ Server:** $HOSTNAME"
+# Create JSON payload properly
+JSON_PAYLOAD=$(cat <<EOF
+{
+  "content": "📊 **AI Daily Digest Report** - $DATE\n\n**📈 24-Hour Summary:**\n• Reddit posts fetched: $TOTAL_FETCHED\n• Posts processed: $TOTAL_PROCESSED\n• Errors: $ERROR_COUNT\n\n**⚡ Services:** $FETCHER_STATUS | $PROCESSOR_STATUS\n**🖥️ Server:** $HOSTNAME"
+}
+EOF
+)
 
 # Send to Discord
 curl -X POST "$WEBHOOK_URL" \
   -H "Content-Type: application/json" \
-  -d "{\"content\":\"$MESSAGE\"}"
+  -d "$JSON_PAYLOAD"
 
 echo "Summary sent to webhook"
