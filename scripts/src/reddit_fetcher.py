@@ -13,6 +13,10 @@ from supabase import create_client, Client
 from prawcore.exceptions import TooManyRequests, ServerError
 from postgrest.exceptions import APIError as SupabaseAPIError
 import praw.exceptions
+import logging
+
+# Configure httpx logging to reduce noise
+logging.getLogger('httpx').setLevel(logging.WARNING)
 
 # Import utility modules
 from src.utils.logging_config import get_script_logger

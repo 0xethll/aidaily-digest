@@ -1,0 +1,21 @@
+[Unit]
+Description=Run Reddit Content Processor every 4 hours (30 minutes after fetcher)
+Documentation=file:///opt/aidaily-digest/scripts/README.md
+Requires=content-processor.service
+
+[Timer]
+# Run at 00:30, 04:30, 08:30, 12:30, 16:30, 20:30 daily
+# 30-minute offset ensures fresh data from reddit-fetcher is available
+OnCalendar=*-*-* 00,04,08,12,16,20:30:00
+
+# If system was down when timer should have triggered, run immediately on boot
+Persistent=true
+
+# Randomize start time by up to 120 seconds (LLM processing can handle variance)
+RandomizedDelaySec=120
+
+# Less strict accuracy for processing tasks
+AccuracySec=5min
+
+[Install]
+WantedBy=timers.target

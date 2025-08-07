@@ -70,26 +70,14 @@ def main():
             result_stats = processor.process_all_unprocessed(limit=50)
             
             # Log results
-            logger.info("=" * 50)
             logger.info("CONTENT PROCESSING RESULTS")
-            logger.info("=" * 50)
             logger.info(f"Successfully processed: {result_stats.get('processed', 0)} posts")
             logger.info(f"Failed to process: {result_stats.get('failed', 0)} posts")
-            logger.info(f"Skipped (already processed): {result_stats.get('skipped', 0)} posts")
-            
-            # Get updated stats
-            logger.info("")
-            logger.info("Getting updated statistics...")
-            updated_stats = processor.get_processing_stats()
-            logger.info(f"New processing rate: {updated_stats.get('processing_rate', 0)}%")
-            logger.info(f"Remaining unprocessed: {updated_stats.get('unprocessed_posts', 0)} posts")
-            
+            logger.info(f"Skipped (already processed): {result_stats.get('skipped', 0)} posts")            
         else:
             logger.info("No unprocessed posts found - all posts are up to date!")
         
-        logger.info("=" * 50)
         logger.info("Content processing completed successfully")
-        logger.info("=" * 50)
         
         return 0  # Success
         

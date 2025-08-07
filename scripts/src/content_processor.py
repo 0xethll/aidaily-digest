@@ -208,8 +208,8 @@ Respond in this exact JSON format:
             if self.url_fetcher and url:
                 fetched_content = self.url_fetcher.fetch_content(url)
                 if fetched_content:
-                    logger.info(f"✅ Fetched content from URL for post: {post['title'][:50]}...")
-                    logger.info(f"✅ Fetched content: {fetched_content[:500]}")
+                    logger.info(f"✅ Fetched title from URL for post: {post['title'][:20]}...")
+                    logger.info(f"✅ Fetched content: {fetched_content[:100]}")
                 else:
                     logger.warning(f"⚠️ Failed to fetch external URL content for url: {url}")
                     self.increment_url_fetch_attempts(post['reddit_id'])

@@ -1,0 +1,20 @@
+[Unit]
+Description=Run Reddit AI Content Fetcher every 4 hours
+Documentation=file:///opt/aidaily-digest/scripts/README.md
+Requires=reddit-fetcher.service
+
+[Timer]
+# Run at 00:00, 04:00, 08:00, 12:00, 16:00, 20:00 daily
+OnCalendar=*-*-* 00,04,08,12,16,20:00:00
+
+# If system was down when timer should have triggered, run immediately on boot
+Persistent=true
+
+# Randomize start time by up to 60 seconds to avoid resource conflicts
+RandomizedDelaySec=60
+
+# Prevent overlapping runs
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
