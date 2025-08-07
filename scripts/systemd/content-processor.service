@@ -12,6 +12,7 @@ User=asher
 Group=asher
 WorkingDirectory=/opt/aidaily-digest/scripts
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=UV_CACHE_DIR=/opt/aidaily-digest/scripts/.uv-cache
 ExecStart=/usr/local/bin/uv run entrypoints/process_content.py
 StandardOutput=journal
 StandardError=journal
