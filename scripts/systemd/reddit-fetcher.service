@@ -4,7 +4,7 @@ Documentation=file:///opt/aidaily-digest/scripts/README.md
 After=network-online.target
 Wants=network-online.target
 StartLimitBurst=3
-StartLimitIntervalSec=1h
+StartLimitIntervalSec=10m
 
 [Service]
 Type=oneshot
@@ -27,8 +27,10 @@ Restart=on-failure
 RestartSec=30
 
 # Security settings
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=yes
-ReadWritePaths=/opt/aidaily-digest
+#NoNewPrivileges=yes
+#PrivateTmp=yes
+#ProtectSystem=yes
+#ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target
