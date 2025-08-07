@@ -10,7 +10,7 @@ User=asher
 Group=asher
 WorkingDirectory=/opt/aidaily-digest/scripts
 Environment=PATH=/home/asher/.cargo/bin:/usr/bin:/bin
-ExecStart=/home/asher/.cargo/bin/uv run entrypoints/process_content.py
+ExecStart=/bin/bash -c "source /home/asher/.cargo/env && uv run entrypoints/process_content.py"
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=content-processor
@@ -22,6 +22,8 @@ CPUQuota=50%
 # Restart policy for failures
 Restart=on-failure
 RestartSec=60
+StartLimitBurst=3
+StartLimitIntervalSec=1h
 
 # Timeout settings (LLM calls can take time)
 TimeoutStartSec=300
