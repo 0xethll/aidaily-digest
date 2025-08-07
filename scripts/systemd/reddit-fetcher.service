@@ -9,9 +9,8 @@ Type=oneshot
 User=asher
 Group=asher
 WorkingDirectory=/opt/aidaily-digest/scripts
-Environment=PATH=/opt/aidaily-digest/.venv/bin:/usr/bin:/bin
-Environment=PYTHONPATH=/opt/aidaily-digest/scripts
-ExecStart=/opt/aidaily-digest/.venv/bin/python entrypoints/run_daily_fetch.py
+Environment=PATH=/home/asher/.cargo/bin:/usr/bin:/bin
+ExecStart=/home/asher/.cargo/bin/uv run entrypoints/run_daily_fetch.py
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=reddit-fetcher
