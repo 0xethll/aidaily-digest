@@ -3,6 +3,8 @@ Description=Reddit Content Processor with LLM Analysis
 Documentation=file:///opt/aidaily-digest/scripts/README.md
 After=network-online.target
 Wants=network-online.target
+StartLimitBurst=3
+StartLimitIntervalSec=1h
 
 [Service]
 Type=oneshot
@@ -22,8 +24,6 @@ CPUQuota=50%
 # Restart policy for failures
 Restart=on-failure
 RestartSec=60
-StartLimitBurst=3
-StartLimitIntervalSec=1h
 
 # Timeout settings (LLM calls can take time)
 TimeoutStartSec=300
