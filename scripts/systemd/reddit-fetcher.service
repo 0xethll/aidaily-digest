@@ -31,4 +31,4 @@ NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=/opt/aidaily-digest/scripts /opt/aidaily-digest/scripts/.venv
+ReadWritePaths=/opt/aidaily-digest
