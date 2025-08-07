@@ -4,7 +4,7 @@ Requires=webhook-summary.service
 
 [Timer]
 # Send Discord notification daily at 1:00 AM UTC
-OnCalendar=*-*-* 01:00:00
+OnCalendar=*-*-* 14,07,01:00:00
 Persistent=true
 AccuracySec=1min
 
