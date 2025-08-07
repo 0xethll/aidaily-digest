@@ -27,6 +27,9 @@ export class ChatHandler {
 	// Handle user message and generate AI response
 	async handleMessage(userMessage: string, userId: number, userName: string = 'User'): Promise<string> {
 		try {
+			// Development notice
+			const devNotice = "🚧 **Chat functionality is currently under development** 🚧\n\n";
+			
 			// Sanitize and validate input
 			const sanitizedMessage = this.sanitizeInput(userMessage);
 			if (!sanitizedMessage) {
@@ -51,7 +54,7 @@ export class ChatHandler {
 			// Save updated context to database
 			await this.db.saveConversationContext(userId, trimmedContext);
 
-			return response;
+			return devNotice + response;
 		} catch (error) {
 			console.error(`Chat error for user ${userId}:`, error);
 			return 'I encountered an error processing your message. Please try again.';

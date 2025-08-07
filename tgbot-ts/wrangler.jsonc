@@ -40,14 +40,14 @@
 			"has_main_web_app": false
 		}
 	},
-	
+
 	/**
 	 * Cron Triggers
-	 * Schedule daily digest at 1:00 UTC
+	 * Schedule daily digest at 13:00 UTC
 	 * https://developers.cloudflare.com/workers/configuration/cron-triggers/
 	 */
 	"triggers": {
-		"crons": ["0 1 * * *"]
+		"crons": ["0 13 * * *"]
 	}
 	/**
 	 * Note: Use secrets to store sensitive data.
