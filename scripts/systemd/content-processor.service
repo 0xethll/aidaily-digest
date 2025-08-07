@@ -9,8 +9,8 @@ Type=oneshot
 User=asher
 Group=asher
 WorkingDirectory=/opt/aidaily-digest/scripts
-Environment=PATH=/home/asher/.local/bin:/usr/bin:/bin
-ExecStart=/home/asher/.local/bin/uv run entrypoints/process_content.py
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/local/bin/uv run entrypoints/process_content.py
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=content-processor
