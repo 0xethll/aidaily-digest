@@ -1,0 +1,14 @@
+[Unit]
+Description=Daily Summary Report for AI Daily Digest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=asher
+Group=asher
+WorkingDirectory=/opt/aidaily-digest/scripts
+ExecStart=/opt/aidaily-digest/scripts/monitor/daily-summary.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=daily-summary

@@ -1,0 +1,12 @@
+[Unit]
+Description=Send daily summary report at 9:00 AM
+Requires=daily-summary.service
+
+[Timer]
+# Send report daily at 1:00 AM UTC
+OnCalendar=*-*-* 01:00:00
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

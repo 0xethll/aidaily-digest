@@ -1,0 +1,16 @@
+[Unit]
+Description=Daily Discord Webhook Summary for AI Daily Digest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=asher
+Group=asher
+WorkingDirectory=/opt/aidaily-digest/scripts
+Environment=DISCORD_WEBHOOK_URL=
+EnvironmentFile=-/opt/aidaily-digest/scripts/.env
+ExecStart=/opt/aidaily-digest/scripts/monitor/webhook-summary.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=webhook-summary
