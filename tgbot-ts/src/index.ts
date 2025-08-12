@@ -85,7 +85,8 @@ export default {
 			const welcomeMessage =
 				`🤖 **Welcome to AI Daily Digest Bot!**\n\n` +
 				`I can help you with:\n` +
-				`📰 /digest - Get the latest AI news digest\n` +
+				`📰 /digest - Get the top AI posts digest\n` +
+				`🔥 /top-news - Get high-scoring AI news\n` +
 				// `💬 /chat - Start a conversation about AI\n` +
 				// `⚙️ /settings - Configure your preferences\n` +
 				`❓ /help - Get help and commands\n\n` +
@@ -98,7 +99,8 @@ export default {
 			const helpMessage =
 				`🔧 **Available Commands:**\n\n` +
 				`/start - Welcome message and introduction\n` +
-				`/digest - Get today's AI news digest\n` +
+				`/digest - Get the top AI posts digest\n` +
+				`/top-news - Get high-scoring AI news (250+ score)\n` +
 				// `/chat - Start AI conversation mode\n` +
 				// `/settings - Configure your preferences\n` +
 				// `/clear - Clear conversation history\n` +
@@ -107,7 +109,7 @@ export default {
 				`• Send any message to chat with AI\n` +
 				`• Rate limit: 10 messages per minute\n` +
 				`• Daily digest: Top 5 posts from 24-48 hours ago\n` +
-				`• Generated daily at 9 AM`;
+				`• High-scoring AI news pushed every 2 hours`;
 
 			await ctx.reply(helpMessage, { parse_mode: 'Markdown' });
 		});
@@ -176,6 +178,32 @@ export default {
 			}
 		});
 
+		bot.command('top-news', async (ctx) => {
+			try {
+				await ctx.replyWithChatAction('typing');
+				const redditPushService = new RedditPushService(db);
+
+				// Get high-scoring unpushed posts
+				const posts = await redditPushService.getHighScoringUnpushedPosts(250, 48);
+
+				if (posts.length === 0) {
+					await ctx.reply('📭 No new high-scoring AI news found (score >250 from last 48 hours).', { parse_mode: 'Markdown' });
+					return;
+				}
+
+				// Send each post to the user
+				for (const post of posts) {
+					const message = redditPushService.formatPostForTelegram(post);
+					await ctx.reply(message, { parse_mode: 'Markdown' });
+					// Small delay between posts
+					await new Promise((resolve) => setTimeout(resolve, 500));
+				}
+			} catch (error) {
+				console.error('Reddit command error:', error);
+				await ctx.reply("Sorry, I couldn't fetch top AI news right now. Please try again later.");
+			}
+		});
+
 		// Handle text messages for chat
 		bot.on('message:text', async (ctx) => {
 			try {
@@ -211,7 +239,7 @@ export default {
 		const scheduledTime = new Date(event.scheduledTime);
 		const cron = event.cron;
 		console.log(`Scheduled event triggered at: ${scheduledTime.toISOString()}, cron: ${cron}`);
-		
+
 		try {
 			// Validate environment variables
 			validateEnvironment(env);
@@ -232,7 +260,6 @@ export default {
 			} else {
 				console.log(`Unknown cron schedule: ${cron}`);
 			}
-			
 		} catch (error) {
 			console.error('Scheduled event error:', error);
 		}
@@ -242,13 +269,13 @@ export default {
 // Helper functions for scheduled tasks
 async function handleDailyDigest(bot: Bot, db: DatabaseService): Promise<void> {
 	console.log('Processing daily digest...');
-	
+
 	const digestGenerator = new DigestGenerator(db);
 
 	// Get all users
 	const userIds = await db.getAllUserIds();
 	console.log(`Found ${userIds.length} users for scheduled digest`);
-	
+
 	if (userIds.length === 0) {
 		console.log('No users found for digest broadcast');
 		return;
@@ -256,25 +283,27 @@ async function handleDailyDigest(bot: Bot, db: DatabaseService): Promise<void> {
 
 	// Generate digest
 	const digest = await digestGenerator.getTodaysDigest();
-	
+
 	// Send to all users with error handling
 	let successCount = 0;
 	let errorCount = 0;
-	
+
 	for (const userId of userIds) {
 		try {
 			await bot.api.sendMessage(userId, digest, { parse_mode: 'Markdown' });
 			successCount++;
 			// Add small delay to avoid rate limits
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 		} catch (error: any) {
 			console.error(`Failed to send digest to user ${userId}:`, error);
-			
+
 			// Handle bot blocked by user
-			if (error?.error_code === 403 && 
-				(error?.description?.includes('bot was blocked') || 
-				 error?.description?.includes('user is deactivated') ||
-				 error?.description?.includes('chat not found'))) {
+			if (
+				error?.error_code === 403 &&
+				(error?.description?.includes('bot was blocked') ||
+					error?.description?.includes('user is deactivated') ||
+					error?.description?.includes('chat not found'))
+			) {
 				try {
 					await db.markUserBlocked(userId);
 					console.log(`Marked user ${userId} as blocked/deleted`);
@@ -282,23 +311,23 @@ async function handleDailyDigest(bot: Bot, db: DatabaseService): Promise<void> {
 					console.error(`Failed to mark user ${userId} as blocked:`, dbError);
 				}
 			}
-			
+
 			errorCount++;
 		}
 	}
-	
+
 	console.log(`Daily digest completed: ${successCount} sent, ${errorCount} failed`);
 }
 
 async function handleRedditPush(bot: Bot, db: DatabaseService): Promise<void> {
 	console.log('Processing Reddit push...');
-	
+
 	const redditPushService = new RedditPushService(db);
 
 	// Get high-scoring unpushed posts
 	const posts = await redditPushService.getHighScoringUnpushedPosts(250, 48);
 	console.log(`Found ${posts.length} high-scoring posts to push`);
-	
+
 	if (posts.length === 0) {
 		console.log('No high-scoring posts to push');
 		return;
@@ -307,7 +336,7 @@ async function handleRedditPush(bot: Bot, db: DatabaseService): Promise<void> {
 	// Get all active users
 	const userIds = await db.getAllUserIds();
 	console.log(`Found ${userIds.length} users for Reddit push`);
-	
+
 	if (userIds.length === 0) {
 		console.log('No users found for Reddit push');
 		return;
@@ -318,21 +347,23 @@ async function handleRedditPush(bot: Bot, db: DatabaseService): Promise<void> {
 		const message = redditPushService.formatPostForTelegram(post);
 		let successCount = 0;
 		let errorCount = 0;
-		
+
 		for (const userId of userIds) {
 			try {
 				await bot.api.sendMessage(userId, message, { parse_mode: 'Markdown' });
 				successCount++;
 				// Add delay to avoid rate limits
-				await new Promise(resolve => setTimeout(resolve, 150));
+				await new Promise((resolve) => setTimeout(resolve, 150));
 			} catch (error: any) {
 				console.error(`Failed to send Reddit post ${post.reddit_id} to user ${userId}:`, error);
-				
+
 				// Handle bot blocked by user
-				if (error?.error_code === 403 && 
-					(error?.description?.includes('bot was blocked') || 
-					 error?.description?.includes('user is deactivated') ||
-					 error?.description?.includes('chat not found'))) {
+				if (
+					error?.error_code === 403 &&
+					(error?.description?.includes('bot was blocked') ||
+						error?.description?.includes('user is deactivated') ||
+						error?.description?.includes('chat not found'))
+				) {
 					try {
 						await db.markUserBlocked(userId);
 						console.log(`Marked user ${userId} as blocked/deleted`);
@@ -340,11 +371,11 @@ async function handleRedditPush(bot: Bot, db: DatabaseService): Promise<void> {
 						console.error(`Failed to mark user ${userId} as blocked:`, dbError);
 					}
 				}
-				
+
 				errorCount++;
 			}
 		}
-		
+
 		// Mark post as pushed regardless of send success
 		try {
 			await redditPushService.markPostAsPushed(post.reddit_id);
@@ -352,10 +383,10 @@ async function handleRedditPush(bot: Bot, db: DatabaseService): Promise<void> {
 		} catch (dbError) {
 			console.error(`Failed to mark post ${post.reddit_id} as pushed:`, dbError);
 		}
-		
+
 		// Longer delay between different posts
-		await new Promise(resolve => setTimeout(resolve, 1000));
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 	}
-	
+
 	console.log(`Reddit push completed: ${posts.length} posts processed`);
 }
