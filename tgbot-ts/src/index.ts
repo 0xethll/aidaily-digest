@@ -86,7 +86,7 @@ export default {
 				`🤖 **Welcome to AI Daily Digest Bot!**\n\n` +
 				`I can help you with:\n` +
 				`📰 /digest - Get the top AI posts digest\n` +
-				`🔥 /top-news - Get high-scoring AI news\n` +
+				`🔥 /topnews - Get high-scoring AI news\n` +
 				// `💬 /chat - Start a conversation about AI\n` +
 				// `⚙️ /settings - Configure your preferences\n` +
 				`❓ /help - Get help and commands\n\n` +
@@ -100,7 +100,7 @@ export default {
 				`🔧 **Available Commands:**\n\n` +
 				`/start - Welcome message and introduction\n` +
 				`/digest - Get the top AI posts digest\n` +
-				`/top-news - Get high-scoring AI news (250+ score)\n` +
+				`/topnews - Get high-scoring AI news (250+ score)\n` +
 				// `/chat - Start AI conversation mode\n` +
 				// `/settings - Configure your preferences\n` +
 				// `/clear - Clear conversation history\n` +
@@ -178,7 +178,7 @@ export default {
 			}
 		});
 
-		bot.command('top-news', async (ctx) => {
+		bot.command('topnews', async (ctx) => {
 			try {
 				await ctx.replyWithChatAction('typing');
 				const redditPushService = new RedditPushService(db);
