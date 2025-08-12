@@ -43,11 +43,11 @@
 
 	/**
 	 * Cron Triggers
-	 * Schedule daily digest at 13:00 UTC
+	 * Schedule daily digest at 13:00 UTC and Reddit posts every 2 hours
 	 * https://developers.cloudflare.com/workers/configuration/cron-triggers/
 	 */
 	"triggers": {
-		"crons": ["0 13 * * *"]
+		"crons": ["0 13 * * *", "0 */2 * * *"]
 	}
 	/**
 	 * Note: Use secrets to store sensitive data.

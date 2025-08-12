@@ -8,6 +8,7 @@ import OpenAI from 'openai';
 import { DatabaseService } from './services/database';
 import { DigestGenerator } from './services/digest';
 import { ChatHandler } from './services/chat';
+import { RedditPushService } from './services/reddit-push';
 
 export interface Env {
 	BOT_INFO: UserFromGetMe;
@@ -207,7 +208,9 @@ export default {
 	},
 
 	async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-		console.log('Scheduled digest triggered at:', new Date().toISOString());
+		const scheduledTime = new Date(event.scheduledTime);
+		const cron = event.cron;
+		console.log(`Scheduled event triggered at: ${scheduledTime.toISOString()}, cron: ${cron}`);
 		
 		try {
 			// Validate environment variables
@@ -218,54 +221,141 @@ export default {
 
 			// Initialize services
 			const db = new DatabaseService(env.SUPABASE_URL, env.SUPABASE_KEY);
-			const digestGenerator = new DigestGenerator(db);
 
-			// Get all users
-			const userIds = await db.getAllUserIds();
-			console.log(`Found ${userIds.length} users for scheduled digest`);
-			
-			if (userIds.length === 0) {
-				console.log('No users found for digest broadcast');
-				return;
+			// Route to appropriate handler based on cron schedule
+			if (cron === '0 13 * * *') {
+				// Daily digest at 13:00 UTC
+				await handleDailyDigest(bot, db);
+			} else if (cron === '0 */2 * * *') {
+				// Reddit posts every 2 hours
+				await handleRedditPush(bot, db);
+			} else {
+				console.log(`Unknown cron schedule: ${cron}`);
 			}
-
-			// Generate digest
-			const digest = await digestGenerator.getTodaysDigest();
-			
-			// Send to all users with error handling
-			let successCount = 0;
-			let errorCount = 0;
-			
-			for (const userId of userIds) {
-				try {
-					await bot.api.sendMessage(userId, digest, { parse_mode: 'Markdown' });
-					successCount++;
-					// Add small delay to avoid rate limits
-					await new Promise(resolve => setTimeout(resolve, 100));
-				} catch (error: any) {
-					console.error(`Failed to send digest to user ${userId}:`, error);
-					
-					// Handle bot blocked by user
-					if (error?.error_code === 403 && 
-						(error?.description?.includes('bot was blocked') || 
-						 error?.description?.includes('user is deactivated') ||
-						 error?.description?.includes('chat not found'))) {
-						try {
-							await db.markUserBlocked(userId);
-							console.log(`Marked user ${userId} as blocked/deleted`);
-						} catch (dbError) {
-							console.error(`Failed to mark user ${userId} as blocked:`, dbError);
-						}
-					}
-					
-					errorCount++;
-				}
-			}
-			
-			console.log(`Scheduled digest completed: ${successCount} sent, ${errorCount} failed`);
 			
 		} catch (error) {
-			console.error('Scheduled digest error:', error);
+			console.error('Scheduled event error:', error);
 		}
 	},
 } satisfies ExportedHandler<Env>;
+
+// Helper functions for scheduled tasks
+async function handleDailyDigest(bot: Bot, db: DatabaseService): Promise<void> {
+	console.log('Processing daily digest...');
+	
+	const digestGenerator = new DigestGenerator(db);
+
+	// Get all users
+	const userIds = await db.getAllUserIds();
+	console.log(`Found ${userIds.length} users for scheduled digest`);
+	
+	if (userIds.length === 0) {
+		console.log('No users found for digest broadcast');
+		return;
+	}
+
+	// Generate digest
+	const digest = await digestGenerator.getTodaysDigest();
+	
+	// Send to all users with error handling
+	let successCount = 0;
+	let errorCount = 0;
+	
+	for (const userId of userIds) {
+		try {
+			await bot.api.sendMessage(userId, digest, { parse_mode: 'Markdown' });
+			successCount++;
+			// Add small delay to avoid rate limits
+			await new Promise(resolve => setTimeout(resolve, 100));
+		} catch (error: any) {
+			console.error(`Failed to send digest to user ${userId}:`, error);
+			
+			// Handle bot blocked by user
+			if (error?.error_code === 403 && 
+				(error?.description?.includes('bot was blocked') || 
+				 error?.description?.includes('user is deactivated') ||
+				 error?.description?.includes('chat not found'))) {
+				try {
+					await db.markUserBlocked(userId);
+					console.log(`Marked user ${userId} as blocked/deleted`);
+				} catch (dbError) {
+					console.error(`Failed to mark user ${userId} as blocked:`, dbError);
+				}
+			}
+			
+			errorCount++;
+		}
+	}
+	
+	console.log(`Daily digest completed: ${successCount} sent, ${errorCount} failed`);
+}
+
+async function handleRedditPush(bot: Bot, db: DatabaseService): Promise<void> {
+	console.log('Processing Reddit push...');
+	
+	const redditPushService = new RedditPushService(db);
+
+	// Get high-scoring unpushed posts
+	const posts = await redditPushService.getHighScoringUnpushedPosts(250, 48);
+	console.log(`Found ${posts.length} high-scoring posts to push`);
+	
+	if (posts.length === 0) {
+		console.log('No high-scoring posts to push');
+		return;
+	}
+
+	// Get all active users
+	const userIds = await db.getAllUserIds();
+	console.log(`Found ${userIds.length} users for Reddit push`);
+	
+	if (userIds.length === 0) {
+		console.log('No users found for Reddit push');
+		return;
+	}
+
+	// Send each post to all users
+	for (const post of posts) {
+		const message = redditPushService.formatPostForTelegram(post);
+		let successCount = 0;
+		let errorCount = 0;
+		
+		for (const userId of userIds) {
+			try {
+				await bot.api.sendMessage(userId, message, { parse_mode: 'Markdown' });
+				successCount++;
+				// Add delay to avoid rate limits
+				await new Promise(resolve => setTimeout(resolve, 150));
+			} catch (error: any) {
+				console.error(`Failed to send Reddit post ${post.reddit_id} to user ${userId}:`, error);
+				
+				// Handle bot blocked by user
+				if (error?.error_code === 403 && 
+					(error?.description?.includes('bot was blocked') || 
+					 error?.description?.includes('user is deactivated') ||
+					 error?.description?.includes('chat not found'))) {
+					try {
+						await db.markUserBlocked(userId);
+						console.log(`Marked user ${userId} as blocked/deleted`);
+					} catch (dbError) {
+						console.error(`Failed to mark user ${userId} as blocked:`, dbError);
+					}
+				}
+				
+				errorCount++;
+			}
+		}
+		
+		// Mark post as pushed regardless of send success
+		try {
+			await redditPushService.markPostAsPushed(post.reddit_id);
+			console.log(`Reddit post ${post.reddit_id} pushed: ${successCount} sent, ${errorCount} failed`);
+		} catch (dbError) {
+			console.error(`Failed to mark post ${post.reddit_id} as pushed:`, dbError);
+		}
+		
+		// Longer delay between different posts
+		await new Promise(resolve => setTimeout(resolve, 1000));
+	}
+	
+	console.log(`Reddit push completed: ${posts.length} posts processed`);
+}

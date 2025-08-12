@@ -103,8 +103,7 @@ export class DigestGenerator {
 		}
 
 		digest += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-		digest += `💬 *Send me a message to discuss any of these topics!*\n`;
-		digest += `🔄 *Next digest tomorrow at 9 AM*`;
+		digest += `💬 *Send me a message to discuss any of these topics!*`;
 
 		return digest;
 	}
@@ -148,16 +147,15 @@ export class DigestGenerator {
 		// const summary = post.summary ? this.truncateText(post.summary, 120) : '';
 		const contentType = post.content_type || 'General';
 
-		let formatted = `**${index}. ${post.summary}**\n`;
+		let formatted = `📂 ${contentType}\n`;
+		formatted += `**${index}. ${post.summary}**\n`;
 
 		// if (summary) {
 		// 	formatted += `   ${summary}\n`;
 		// }
 
-		formatted += `   📂 ${contentType}\n`;
-
-		if (post.url && post.url !== 'self') {
-			formatted += `   🔗 [Read more](${post.url})\n`;
+		if (post.permalink && post.permalink !== 'self') {
+			formatted += `   🔗 [Read more](${post.permalink})\n`;
 		}
 
 		formatted += `\n`;
