@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Twitter Poster every 6 hours
+Requires=twitter-poster.service
+
+[Timer]
+OnCalendar=02,08,14,20:12:00
+Persistent=true
+AccuracySec=5min
+
+[Install]
+WantedBy=timers.target

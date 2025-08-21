@@ -1,0 +1,19 @@
+[Unit]
+Description=Twitter Poster - Automated tweeting of high-scoring Reddit posts
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/aidaily-digest/scripts
+Environment=PATH=/home/ubuntu/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/python3 entrypoints/run_twitter_poster.py
+StandardOutput=journal
+StandardError=journal
+
+# Environment file containing secrets
+EnvironmentFile=/home/ubuntu/aidaily-digest/scripts/.env
+
+[Install]
+WantedBy=multi-user.target
