@@ -228,7 +228,7 @@ Input:
 Requirements:
 1.  **Persona & Tone:** Your voice must be witty, sharp, and slightly sarcastic, as shown in the example. Poke fun at tech hype.
 2.  **Format:**
-    - Create a thread of 2-4 tweets.
+    - Create a thread of 1-3 tweets.
     - Number the tweets (1/n, 2/n, etc.).
     - Return only the tweet content, one tweet per line.
 3.  **Content:**
