@@ -1,9 +1,23 @@
 import OpenAI from 'openai';
 import { DatabaseService } from './database';
+import { QuestionAnalyzer } from './question-analyzer';
 
 export interface ChatMessage {
 	role: 'user' | 'assistant' | 'system';
 	content: string;
+}
+
+interface RelevantContent {
+	posts: any[];
+	totalTokens: number;
+	truncated: boolean;
+}
+
+interface AnalysisResult {
+	keywords: string[];
+	intent: string;
+	topicAreas: string[];
+	timeframe?: string;
 }
 
 // OpenAI compatible message type
@@ -15,6 +29,7 @@ interface OpenAIChatMessage {
 export class ChatHandler {
 	private fireworks: OpenAI;
 	private db: DatabaseService;
+	private questionAnalyzer: QuestionAnalyzer;
 	private maxContextLength: number = 20;
 	private model: string;
 
@@ -22,19 +37,20 @@ export class ChatHandler {
 		this.fireworks = fireworks;
 		this.db = db;
 		this.model = model;
+		this.questionAnalyzer = new QuestionAnalyzer(fireworks, db, model);
 	}
 
 	// Handle user message and generate AI response
 	async handleMessage(userMessage: string, userId: number, userName: string = 'User'): Promise<string> {
 		try {
-			// Development notice
-			const devNotice = "🚧 **Chat functionality is currently under development** 🚧\n\n";
-			
 			// Sanitize and validate input
 			const sanitizedMessage = this.sanitizeInput(userMessage);
 			if (!sanitizedMessage) {
 				return 'Please send a valid message.';
 			}
+
+			// Analyze the user question and retrieve relevant Reddit posts
+			const { analysis, relevantContent, searchQuery } = await this.questionAnalyzer.analyzeAndRetrieve(sanitizedMessage, userId);
 
 			// Get conversation context from database
 			const context = await this.db.getConversationContext(userId);
@@ -42,8 +58,8 @@ export class ChatHandler {
 			// Add user message to context
 			context.push({ role: 'user' as const, content: sanitizedMessage });
 
-			// Generate AI response
-			const response = await this.generateResponse(context, userName);
+			// Generate AI response with relevant Reddit content
+			const response = await this.generateResponseWithContext(context, userName, relevantContent, analysis);
 
 			// Add AI response to context
 			context.push({ role: 'assistant', content: response });
@@ -54,7 +70,10 @@ export class ChatHandler {
 			// Save updated context to database
 			await this.db.saveConversationContext(userId, trimmedContext);
 
-			return devNotice + response;
+			// Add debug info for development
+			const debugInfo = `\n\n🔍 *Search Info:* Found ${relevantContent.posts.length} relevant posts${relevantContent.truncated ? ' (truncated)' : ''} | Keywords: ${analysis.keywords.join(', ')}`;
+
+			return response + debugInfo;
 		} catch (error) {
 			console.error(`Chat error for user ${userId}:`, error);
 			return 'I encountered an error processing your message. Please try again.';
@@ -91,6 +110,42 @@ export class ChatHandler {
 		}
 	}
 
+	// Generate AI response with Reddit context
+	private async generateResponseWithContext(
+		context: ChatMessage[], 
+		userName: string, 
+		relevantContent: RelevantContent, 
+		analysis: AnalysisResult
+	): Promise<string> {
+		const systemPrompt = this.getSystemPromptWithContext(userName, relevantContent, analysis);
+		const messages: OpenAIChatMessage[] = [
+			{ role: 'system', content: systemPrompt },
+			...context.slice(-10), // Keep fewer messages to make room for Reddit content
+		];
+
+		try {
+			const completion = await this.fireworks.chat.completions.create({
+				model: this.model,
+				messages: messages,
+				max_tokens: 1500, // Increased for more detailed responses
+				temperature: 0.7,
+				top_p: 0.9,
+				stream: false,
+			});
+
+			const response = completion.choices[0]?.message?.content;
+			if (!response) {
+				throw new Error('No response from AI model');
+			}
+
+			return this.sanitizeOutput(response);
+		} catch (error) {
+			console.error('Fireworks AI error:', error);
+			// Fallback to original method if context-aware generation fails
+			return await this.generateResponse(context, userName);
+		}
+	}
+
 	// Get system prompt for AI assistant
 	private getSystemPrompt(userName: string): string {
 		return `You are an AI assistant specialized in artificial intelligence, machine learning, and technology topics. You're part of the AI Daily Digest bot that helps users stay updated with AI news and discuss AI-related topics.
@@ -114,6 +169,39 @@ You can discuss:
 - Career advice in AI/ML
 - Ethical considerations in AI
 - Startup and business aspects of AI
+
+Stay focused on these topics and provide valuable insights to help users understand and engage with the AI landscape.`;
+	}
+
+	// Get enhanced system prompt with Reddit context
+	private getSystemPromptWithContext(userName: string, relevantContent: RelevantContent, analysis: AnalysisResult): string {
+		const redditContext = this.questionAnalyzer.formatPostsForContext(relevantContent.posts);
+		
+		return `You are an AI assistant specialized in artificial intelligence, machine learning, and technology topics. You're part of the AI Daily Digest bot that helps users stay updated with AI news and discuss AI-related topics.
+
+I've analyzed the user's question and found ${relevantContent.posts.length} relevant Reddit posts from recent AI discussions. Use this context to provide more informed and current responses.
+
+RELEVANT REDDIT POSTS:
+${redditContext}
+
+Key guidelines:
+- Use the Reddit posts above to provide current, relevant information
+- Reference specific posts when they directly answer the user's question
+- Combine information from multiple posts when helpful
+- If the posts don't contain relevant information, rely on your general knowledge
+- Be helpful, informative, and engaging
+- Focus on AI, ML, tech, and related topics
+- Keep responses comprehensive but readable
+- Use markdown formatting when helpful
+- Be conversational and friendly
+- The user's name is ${userName}
+
+User Intent Analysis:
+- Intent: ${analysis.intent}
+- Topic Areas: ${analysis.topicAreas.join(', ')}
+- Keywords: ${analysis.keywords.join(', ')}
+
+When referencing Reddit posts, you can mention things like "According to recent discussions on r/MachineLearning" or "A recent post highlighted that..." to make your responses feel current and well-informed.
 
 Stay focused on these topics and provide valuable insights to help users understand and engage with the AI landscape.`;
 	}

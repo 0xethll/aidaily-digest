@@ -425,4 +425,72 @@ export class DatabaseService {
 
 		return stats;
 	}
+
+	// Search posts by keywords (for question analyzer)
+	async searchPostsByKeywords(keywords: string[], daysBack: number, limit: number = 50): Promise<RedditPost[]> {
+		if (keywords.length === 0) return [];
+
+		const cutoffDate = new Date();
+		cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+
+		// Build OR condition for searching across title, content, and summary
+		const searchConditions = keywords.map(keyword => 
+			`title.ilike.%${keyword}%,content.ilike.%${keyword}%,summary.ilike.%${keyword}%`
+		).join(',');
+
+		const { data, error } = await this.supabase
+			.from('reddit_posts')
+			.select('*')
+			.or(searchConditions)
+			.gte('created_utc', cutoffDate.toISOString())
+			.order('score', { ascending: false })
+			.limit(limit);
+
+		if (error) {
+			throw new Error(`Failed to search posts by keywords: ${error.message}`);
+		}
+
+		return data || [];
+	}
+
+	// Search posts by title (for question analyzer)
+	async searchPostsByTitle(searchQuery: string, daysBack: number, limit: number = 30): Promise<RedditPost[]> {
+		const cutoffDate = new Date();
+		cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+
+		const { data, error } = await this.supabase
+			.from('reddit_posts')
+			.select('*')
+			.ilike('title', `%${searchQuery}%`)
+			.gte('created_utc', cutoffDate.toISOString())
+			.order('score', { ascending: false })
+			.limit(limit);
+
+		if (error) {
+			throw new Error(`Failed to search posts by title: ${error.message}`);
+		}
+
+		return data || [];
+	}
+
+	// Search posts by summary (for question analyzer)
+	async searchPostsBySummary(searchQuery: string, daysBack: number, limit: number = 30): Promise<RedditPost[]> {
+		const cutoffDate = new Date();
+		cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+
+		const { data, error } = await this.supabase
+			.from('reddit_posts')
+			.select('*')
+			.ilike('summary', `%${searchQuery}%`)
+			.not('summary', 'is', null)
+			.gte('created_utc', cutoffDate.toISOString())
+			.order('score', { ascending: false })
+			.limit(limit);
+
+		if (error) {
+			throw new Error(`Failed to search posts by summary: ${error.message}`);
+		}
+
+		return data || [];
+	}
 }
