@@ -71,8 +71,8 @@ fi
 
 # Set correct permissions
 echo -e "${BLUE}🔐 Setting permissions...${NC}"
-sudo chmod 644 "$SYSTEMD_DIR/"*.service 2>/dev/null || true
-sudo chmod 644 "$SYSTEMD_DIR/"*.timer 2>/dev/null || true
+sudo chmod 644 "$SYSTEMD_DIR/"*.service 2>&1 || true
+sudo chmod 644 "$SYSTEMD_DIR/"*.timer 2>&1 || true
 
 # Reload systemd
 echo -e "${BLUE}🔄 Reloading systemd...${NC}"
