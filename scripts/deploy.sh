@@ -53,7 +53,7 @@ sudo cp "$SCRIPTS_DIR/systemd/reddit-fetcher.timer" "$SYSTEMD_DIR/"
 sudo cp "$SCRIPTS_DIR/systemd/content-processor.service" "$SYSTEMD_DIR/"
 sudo cp "$SCRIPTS_DIR/systemd/content-processor.timer" "$SYSTEMD_DIR/"
 
-# Copy optional webhook and daily summary services if they exist
+# Copy optional services if they exist
 if [ -f "$SCRIPTS_DIR/systemd/webhook-summary.service" ]; then
     sudo cp "$SCRIPTS_DIR/systemd/webhook-summary.service" "$SYSTEMD_DIR/"
     sudo cp "$SCRIPTS_DIR/systemd/webhook-summary.timer" "$SYSTEMD_DIR/"
@@ -62,6 +62,11 @@ fi
 if [ -f "$SCRIPTS_DIR/systemd/daily-summary.service" ]; then
     sudo cp "$SCRIPTS_DIR/systemd/daily-summary.service" "$SYSTEMD_DIR/"
     sudo cp "$SCRIPTS_DIR/systemd/daily-summary.timer" "$SYSTEMD_DIR/"
+fi
+
+if [ -f "$SCRIPTS_DIR/systemd/twitter-poster.service" ]; then
+    sudo cp "$SCRIPTS_DIR/systemd/twitter-poster.service" "$SYSTEMD_DIR/"
+    sudo cp "$SCRIPTS_DIR/systemd/twitter-poster.timer" "$SYSTEMD_DIR/"
 fi
 
 # Set correct permissions
@@ -93,6 +98,12 @@ if [ -f "$SYSTEMD_DIR/daily-summary.timer" ]; then
     sudo systemctl start daily-summary.timer
 fi
 
+if [ -f "$SYSTEMD_DIR/twitter-poster.timer" ]; then
+    echo -e "${BLUE}🐦 Enabling Twitter posting...${NC}"
+    sudo systemctl enable twitter-poster.timer
+    sudo systemctl start twitter-poster.timer
+fi
+
 # Show status
 echo -e "${GREEN}✅ Deployment completed successfully!${NC}"
 echo ""
@@ -109,10 +120,19 @@ echo ""
 echo -e "${YELLOW}🛠️  Useful Commands:${NC}"
 echo "View logs:           sudo journalctl -u reddit-fetcher.service -f"
 echo "                     sudo journalctl -u content-processor.service -f"
+echo "                     sudo journalctl -u webhook-summary.service -f"
+echo "                     sudo journalctl -u daily-summary.service -f"
+echo "                     sudo journalctl -u twitter-poster.service -f"
 echo "Manual run:          sudo systemctl start reddit-fetcher.service"
 echo "                     sudo systemctl start content-processor.service"
+echo "                     sudo systemctl start webhook-summary.service"
+echo "                     sudo systemctl start daily-summary.service"
+echo "                     sudo systemctl start twitter-poster.service"
 echo "Stop timers:         sudo systemctl stop reddit-fetcher.timer"
 echo "                     sudo systemctl stop content-processor.timer"
+echo "                     sudo systemctl stop webhook-summary.timer"
+echo "                     sudo systemctl stop daily-summary.timer"
+echo "                     sudo systemctl stop twitter-poster.timer"
 echo "Check status:        sudo systemctl status reddit-fetcher.timer"
 echo "List all timers:     sudo systemctl list-timers"
 
