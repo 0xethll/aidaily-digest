@@ -48,7 +48,7 @@ class TwitterClient:
             consumer_secret=config.consumer_secret,
             access_token=config.access_token,
             access_token_secret=config.access_token_secret,
-            wait_on_rate_limit=True
+            wait_on_rate_limit=False
         )
         
         # Verify credentials
@@ -87,6 +87,9 @@ class TwitterClient:
             else:
                 logger.error("Failed to post tweet - no response data")
                 return None
+        except tweepy.TooManyRequests:
+            logger.error("Rate limit exceeded for single tweet")
+            return None
         except Exception as e:
             logger.error(f"Error posting tweet: {e}")
             return None
@@ -130,6 +133,10 @@ class TwitterClient:
                     tweet_ids.append(None)
                     break  # Stop thread if any tweet fails
                     
+            except tweepy.TooManyRequests:
+                logger.error(f"Rate limit exceeded on tweet {i+1}/{len(thread.tweets)}. Stopping thread.")
+                tweet_ids.append(None)
+                break  # Stop thread if rate limited
             except Exception as e:
                 logger.error(f"Error posting tweet {i+1}/{len(thread.tweets)}: {e}")
                 tweet_ids.append(None)
