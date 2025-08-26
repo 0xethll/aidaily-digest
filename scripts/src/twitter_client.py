@@ -242,7 +242,7 @@ Requirements:
 """
 
     response = client.chat.completions.create(
-        model="accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new",
+        model="accounts/sentientfoundation-serverless/models/dobby-mini-unhinged-plus-llama-3-1-8b",
         messages=[
             {"role": "system", "content": "You are an expert social media manager for a top-tier AI news brand. Your voice is witty, sharp, and slightly sarcastic. Your goal is to create an engaging Twitter thread that makes complex tech topics fun and accessible."},
             {"role": "user", "content": prompt}
