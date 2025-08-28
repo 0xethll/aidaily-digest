@@ -228,10 +228,15 @@ Input:
 
 Requirements:
 1.  **Persona & Tone:** Focus on being informative and engaging. These are AI news and tech posts - be insightful and create curiosity.
-2.  **Format:**
-    - Create a thread of 1-2 tweets.
-    - Number the tweets (1/n, 2/n, etc.).
-    - Return only the tweet content, one tweet per line.
+2.  **CRITICAL FORMAT RULES:**
+    - Create EXACTLY 1-2 tweets only.
+    - Each tweet MUST start with the number (1/n, 2/n, etc.) followed by the content on the SAME LINE.
+    - Return ONLY the tweet content, one tweet per line.
+    - DO NOT separate numbers from content.
+    - DO NOT include URLs separately from tweet content.
+    - EXAMPLE CORRECT FORMAT:
+      1/2 Your tweet content goes here with the link at the end {link_to_use}
+      2/2 Your second tweet content continues here
 3.  **Content:**
     - The first tweet MUST be eye-catching and create desire to learn more, especially when the topic solves a pain point.
     - The first tweet MUST include `{link_to_use}` at the end (use URL if available, otherwise reddit_link).
@@ -242,6 +247,7 @@ Requirements:
     - Avoid generic marketing-speak ("game-changer," "revolutionary").
     - Make it conversational and accessible.
     - Focus on the "why this matters" angle.
+    - NO profanity or inappropriate language.
 """
 
     response = client.chat.completions.create(
@@ -264,6 +270,8 @@ Requirements:
             if len(tweet) > 280:
                 raise Exception(f"Tweet {i+1} too long ({len(tweet)} chars).")
             validated_tweets.append(tweet)
+        if len(tweets) > 3:
+            raise Exception(f"Thread too long ({len(tweets)} tweets).")
 
         # Only add reddit_link if it wasn't already used in the first tweet
         if not url.strip():
