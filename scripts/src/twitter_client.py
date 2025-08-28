@@ -187,7 +187,7 @@ def load_twitter_config_from_env() -> TwitterConfig:
 
 def generate_humorous_tweet_thread(title: str, summary: str, url: str, reddit_link: str) -> TweetThread:
     """
-    Generate a humorous tweet thread using OpenAI based on Reddit post content
+    Generate a engaging tweet thread using OpenAI based on Reddit post content
     
     Args:
         title: Reddit post title
@@ -203,48 +203,51 @@ def generate_humorous_tweet_thread(title: str, summary: str, url: str, reddit_li
         api_key=os.getenv('FIREWORKS_API_KEY'),
     )
     
-    # Create the prompt for generating humorous tweet thread
+    # Create the prompt for generating engaging tweet thread
+    link_to_use = url if url.strip() else reddit_link
     prompt = f"""### EXAMPLE ###
 Input:
-- Title: "Researchers Discover AI Can Now Generate Passwords That Humans Find Memorable"
-- Summary: "A new study from Stanford shows a novel AI model can generate secure passwords like 'correct horse battery staple' that are both strong and easy for humans to remember, outperforming traditional password generators."
-- URL: "https://example.com/ai-passwords"
+- Title: "Building a SaaS in 20 Days with Claude Code"
+- Summary: "The post simplifies the development process with Claude Code by planning with AI, creating essential files, and executing tasks in small chunks. It proves that even complex projects like a SaaS can be built in just 20 days with the right approach."
+- URL: "https://example.com/saas-claude-code"
 
 Desired Output:
-1/3 Finally, an AI that's useful. Instead of trying to take over the world, it's helping me remember my password for the 17th streaming service I've signed up for this month. {url}
-2/3 The AI generates passwords like "correct horse battery staple." My brain likes this. It's way better than my current system of "Password123!" plus a different random symbol each time.
-3/3 I, for one, welcome our new password-generating overlords. At least they'll be secure overlords.
+1/3 This thread breaks down how Claude Code transforms SaaS development by planning with AI and executing in focused chunks. The results? A complete project in just 20 days. {url}
+2/3 The key insight: instead of wrestling with overwhelming complexity, break everything into bite-sized tasks that AI can help execute systematically.
 
 ### END OF EXAMPLE ###
 
 ### YOUR TASK ###
-Now, create a humorous Twitter thread (2-4 tweets) based on the following Reddit post.
+Now, create an engaging Twitter thread (1-2 tweets) based on the following Reddit post.
 
 Input:
 - Title: "{title}"
 - Summary: "{summary}"
 - URL: "{url}"
+- Reddit Link: "{reddit_link}"
 
 Requirements:
-1.  **Persona & Tone:** Your voice must be witty, sharp, and slightly sarcastic, as shown in the example. Poke fun at tech hype.
+1.  **Persona & Tone:** Focus on being informative and engaging. These are AI news and tech posts - be insightful and create curiosity.
 2.  **Format:**
-    - Create a thread of 1-3 tweets.
+    - Create a thread of 1-2 tweets.
     - Number the tweets (1/n, 2/n, etc.).
     - Return only the tweet content, one tweet per line.
 3.  **Content:**
-    - The first tweet MUST include the `{url}` placeholder at the end. It should be a strong hook.
-    - Subsequent tweets should add humorous commentary or expand on the core idea.
+    - The first tweet MUST be eye-catching and create desire to learn more, especially when the topic solves a pain point.
+    - The first tweet MUST include `{link_to_use}` at the end (use URL if available, otherwise reddit_link).
+    - Focus on practical insights and value.
+    - Subsequent tweets should expand on key insights or implications.
 4.  **Constraints:**
-    - Each tweet must be under 280 characters. Remember to take into account the length of the URL
-    - NO generic marketing-speak ("game-changer," "unlock the power").
-    - NO clickbait questions.
-    - NO corporate jargon.
+    - Each tweet must be under 280 characters. Remember to account for URL length, all URLs are automatically shortened to 23 characters when included in a tweet.
+    - Avoid generic marketing-speak ("game-changer," "revolutionary").
+    - Make it conversational and accessible.
+    - Focus on the "why this matters" angle.
 """
 
     response = client.chat.completions.create(
         model="accounts/sentientfoundation-serverless/models/dobby-mini-unhinged-plus-llama-3-1-8b",
         messages=[
-            {"role": "system", "content": "You are an expert social media manager for a top-tier AI news brand. Your voice is witty, sharp, and slightly sarcastic. Your goal is to create an engaging Twitter thread that makes complex tech topics fun and accessible."},
+            {"role": "system", "content": "You are an expert social media manager for a top-tier AI news brand. Your goal is to create engaging, informative Twitter threads that make complex tech topics accessible and valuable to readers. Focus on practical insights and why the topic matters."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.8,
@@ -262,15 +265,29 @@ Requirements:
                 raise Exception(f"Tweet {i+1} too long ({len(tweet)} chars).")
             validated_tweets.append(tweet)
 
-        validated_tweets.append(f"""Reddit discussion: {reddit_link}
-#AI #dobby
+        # Only add reddit_link if it wasn't already used in the first tweet
+        if not url.strip():
+            # Reddit link was used in first tweet, don't repeat it
+            final_tweet = """#AI #dobby
 
 Subscribe on Telegram: https://t.me/aidaily_digest_bot
 
 Generated by dobby model
 @SentientAGI
 """
-        )
+        else:
+            # URL was used in first tweet, add reddit discussion link
+            final_tweet = f"""#AI #dobby
+
+Reddit discussion: {reddit_link}
+
+Subscribe on Telegram: https://t.me/aidaily_digest_bot
+
+Generated by dobby model
+@SentientAGI
+"""
+        
+        validated_tweets.append(final_tweet)
         
         return TweetThread(validated_tweets)
     else:
