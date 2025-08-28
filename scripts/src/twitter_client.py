@@ -212,8 +212,8 @@ Input:
 - URL: "https://example.com/saas-claude-code"
 
 Desired Output:
-1/2 This thread breaks down how Claude Code transforms SaaS development by planning with AI and executing in focused chunks. The results? A complete project in just 20 days. {url}
-2/2 The key insight: instead of wrestling with overwhelming complexity, break everything into bite-sized tasks that AI can help execute systematically.
+1/2 Claude Code transforms SaaS development by planning with AI and executing in focused chunks. Result? A complete project in just 20 days. {url}
+2/2 Key insight: break overwhelming complexity into bite-sized tasks that AI can execute systematically. What used to take months now takes weeks.
 
 ### END OF EXAMPLE ###
 
@@ -243,17 +243,21 @@ Requirements:
     - Focus on practical insights and value.
     - Subsequent tweet should expand on key insights or implications.
 4.  **Constraints:**
-    - Each tweet must be under 280 characters. Remember to account for URL length, all URLs are automatically shortened to 23 characters when included in a tweet.
-    - Avoid generic marketing-speak ("game-changer," "revolutionary").
-    - Make it conversational and accessible.
-    - Focus on the "why this matters" angle.
-    - NO profanity or inappropriate language.
+    - CRITICAL: Each tweet MUST be under 280 characters INCLUDING numbering (1/2) and URLs (23 chars each)
+    - TARGET: Keep tweets under 250 characters for safety
+    - URLs are automatically shortened to exactly 23 characters by Twitter
+    - Count characters carefully: "1/2 " = 4 chars, URL = 23 chars, remaining content = 253 chars max
+    - If approaching limit, CUT content rather than exceed 280 characters
+    - Avoid generic marketing-speak ("game-changer," "revolutionary")
+    - Make it conversational and accessible
+    - Focus on the "why this matters" angle
+    - NO profanity or inappropriate language
 """
 
     response = client.chat.completions.create(
         model="accounts/sentientfoundation-serverless/models/dobby-mini-unhinged-plus-llama-3-1-8b",
         messages=[
-            {"role": "system", "content": "You are an expert social media manager for a top-tier AI news brand. Your goal is to create engaging, informative Twitter threads that make complex tech topics accessible and valuable to readers. Focus on practical insights and why the topic matters."},
+            {"role": "system", "content": "You are an expert social media manager for a top-tier AI news brand. Your goal is to create engaging, informative Twitter threads that make complex tech topics accessible and valuable to readers. Focus on practical insights and why the topic matters. CRITICAL: You must keep each tweet under 280 characters including numbering and URLs. Count characters carefully and prioritize brevity."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.8,
