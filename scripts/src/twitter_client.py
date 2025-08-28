@@ -212,8 +212,8 @@ Input:
 - URL: "https://example.com/saas-claude-code"
 
 Desired Output:
-1/3 This thread breaks down how Claude Code transforms SaaS development by planning with AI and executing in focused chunks. The results? A complete project in just 20 days. {url}
-2/3 The key insight: instead of wrestling with overwhelming complexity, break everything into bite-sized tasks that AI can help execute systematically.
+1/2 This thread breaks down how Claude Code transforms SaaS development by planning with AI and executing in focused chunks. The results? A complete project in just 20 days. {url}
+2/2 The key insight: instead of wrestling with overwhelming complexity, break everything into bite-sized tasks that AI can help execute systematically.
 
 ### END OF EXAMPLE ###
 
@@ -236,7 +236,7 @@ Requirements:
     - The first tweet MUST be eye-catching and create desire to learn more, especially when the topic solves a pain point.
     - The first tweet MUST include `{link_to_use}` at the end (use URL if available, otherwise reddit_link).
     - Focus on practical insights and value.
-    - Subsequent tweets should expand on key insights or implications.
+    - Subsequent tweet should expand on key insights or implications.
 4.  **Constraints:**
     - Each tweet must be under 280 characters. Remember to account for URL length, all URLs are automatically shortened to 23 characters when included in a tweet.
     - Avoid generic marketing-speak ("game-changer," "revolutionary").
